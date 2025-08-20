@@ -1,0 +1,128 @@
+version: '3.8'
+
+services:
+  # PostgreSQL 数据库 (本地部署)
+  postgres:
+    image: postgres:13-alpine
+    container_name: targetmanage_postgres_lighthouse
+    environment:
+      POSTGRES_DB: targetmanage
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-lighthouse_db_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    restart: unless-stopped
+    # 资源限制
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    networks:
+      - lighthouse_network
+
+  # Redis 缓存 (本地部署)
+  redis:
+    image: redis:7-alpine
+    container_name: targetmanage_redis_lighthouse
+    command: redis-server --maxmemory 128mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+    networks:
+      - lighthouse_network
+
+  # Python后端服务
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.lighthouse
+    container_name: targetmanage_backend_lighthouse
+    environment:
+      - DATABASE_URL=postgresql://postgres:${DB_PASSWORD:-lighthouse_db_password}@postgres:5432/targetmanage
+      - REDIS_URL=redis://redis:6379/0
+      - DEBUG=False
+      - TENCENT_SECRET_ID=${TENCENT_SECRET_ID}
+      - TENCENT_SECRET_KEY=${TENCENT_SECRET_KEY}
+      - SECRET_KEY=${SECRET_KEY:-lighthouse-secret-key}
+      - COS_BUCKET_NAME=${COS_BUCKET_NAME}
+      - WECHAT_APP_ID=${WECHAT_APP_ID}
+      - WECHAT_APP_SECRET=${WECHAT_APP_SECRET}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./logs:/app/logs
+      - ./uploads:/app/uploads
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+    networks:
+      - lighthouse_network
+
+  # 前端服务
+  frontend:
+    build:
+      context: ./admin-frontend
+      dockerfile: Dockerfile.lighthouse
+    container_name: targetmanage_frontend_lighthouse
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    networks:
+      - lighthouse_network
+
+  # Nginx 反向代理
+  nginx:
+    image: nginx:alpine
+    container_name: targetmanage_nginx_lighthouse
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.lighthouse.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+      - ./uploads:/var/www/uploads
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - backend
+      - frontend
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+    networks:
+      - lighthouse_network
+
+networks:
+  lighthouse_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local

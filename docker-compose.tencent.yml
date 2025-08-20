@@ -1,0 +1,183 @@
+version: '3.8'
+
+services:
+  # Python后端服务
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: targetmanage_backend_tencent
+    environment:
+      # 从环境变量文件加载
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - DEBUG=False
+      - TENCENT_SECRET_ID=${TENCENT_SECRET_ID}
+      - TENCENT_SECRET_KEY=${TENCENT_SECRET_KEY}
+      - TENCENT_REGION=${TENCENT_REGION}
+      - COS_BUCKET_NAME=${COS_BUCKET_NAME}
+      - WECHAT_APP_ID=${WECHAT_APP_ID}
+      - WECHAT_APP_SECRET=${WECHAT_APP_SECRET}
+      - SECRET_KEY=${SECRET_KEY}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./logs:/app/logs
+      - ./uploads:/app/uploads
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - targetmanage_network
+
+  # 前端管理后台
+  frontend:
+    build:
+      context: ./admin-frontend
+      dockerfile: Dockerfile
+    container_name: targetmanage_frontend_tencent
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - targetmanage_network
+
+  # Nginx反向代理
+  nginx:
+    image: nginx:alpine
+    container_name: targetmanage_nginx_tencent
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.tencent.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+      - ./uploads:/var/www/uploads
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - backend
+      - frontend
+    restart: unless-stopped
+    networks:
+      - targetmanage_network
+
+  # Redis本地实例（如果不使用腾讯云Redis）
+  redis:
+    image: redis:7-alpine
+    container_name: targetmanage_redis_local
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    restart: unless-stopped
+    networks:
+      - targetmanage_network
+    # 仅在未使用腾讯云Redis时启用
+    profiles:
+      - local-redis
+
+  # Celery任务队列
+  celery:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: targetmanage_celery_tencent
+    command: celery -A app.main worker --loglevel=info --concurrency=4
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      - TENCENT_SECRET_ID=${TENCENT_SECRET_ID}
+      - TENCENT_SECRET_KEY=${TENCENT_SECRET_KEY}
+      - TENCENT_REGION=${TENCENT_REGION}
+    volumes:
+      - ./logs:/app/logs
+      - ./uploads:/app/uploads
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - targetmanage_network
+
+  # Celery Beat定时任务
+  celery-beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: targetmanage_celery_beat_tencent
+    command: celery -A app.main beat --loglevel=info
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      - backend
+      - celery
+    restart: unless-stopped
+    networks:
+      - targetmanage_network
+
+  # Flower监控
+  flower:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: targetmanage_flower_tencent
+    command: celery -A app.main flower --port=5555 --broker=${CELERY_BROKER_URL}
+    environment:
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+    ports:
+      - "5555:5555"
+    depends_on:
+      - celery
+    restart: unless-stopped
+    networks:
+      - targetmanage_network
+
+  # 日志收集器（可选）
+  filebeat:
+    image: elastic/filebeat:8.11.0
+    container_name: targetmanage_filebeat_tencent
+    user: root
+    volumes:
+      - ./logs:/var/log/app
+      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: filebeat -e -strict.perms=false
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - targetmanage_network
+    profiles:
+      - logging
+
+networks:
+  targetmanage_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  redis_data:
+    driver: local

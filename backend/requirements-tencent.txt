@@ -1,0 +1,17 @@
+# 腾讯云SDK依赖
+tencentcloud-sdk-python==3.0.1056
+cos-python-sdk-v5==1.9.25
+
+# 腾讯云服务专用依赖
+tencentcloud-sdk-python-ocr==3.0.1056
+tencentcloud-sdk-python-asr==3.0.1056
+tencentcloud-sdk-python-tmt==3.0.1056
+tencentcloud-sdk-python-nlp==3.0.1056
+
+# 音频处理
+pydub==0.25.1
+librosa==0.10.1
+
+# 图片处理
+Pillow==10.1.0
+opencv-python==4.8.1.78

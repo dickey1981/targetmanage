@@ -1,0 +1,134 @@
+version: '3.8'
+
+services:
+  # PostgreSQL数据库
+  postgres:
+    image: postgres:15
+    container_name: targetmanage_postgres
+    environment:
+      POSTGRES_DB: targetmanage
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - targetmanage_network
+
+  # Redis缓存
+  redis:
+    image: redis:7-alpine
+    container_name: targetmanage_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - targetmanage_network
+
+  # Python后端服务
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: targetmanage_backend
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/targetmanage
+      - REDIS_URL=redis://redis:6379/0
+      - DEBUG=False
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - backend_uploads:/app/uploads
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - targetmanage_network
+    restart: unless-stopped
+
+  # 前端管理后台
+  admin-frontend:
+    build:
+      context: ./admin-frontend
+      dockerfile: Dockerfile
+    container_name: targetmanage_admin
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - targetmanage_network
+    restart: unless-stopped
+
+  # Nginx反向代理
+  nginx:
+    build:
+      context: ./docker/nginx
+      dockerfile: Dockerfile
+    container_name: targetmanage_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./docker/nginx/ssl:/etc/nginx/ssl
+      - backend_uploads:/var/www/uploads
+    depends_on:
+      - backend
+      - admin-frontend
+    networks:
+      - targetmanage_network
+    restart: unless-stopped
+
+  # Celery任务队列
+  celery:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: targetmanage_celery
+    command: celery -A app.main worker --loglevel=info
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/targetmanage
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - targetmanage_network
+    restart: unless-stopped
+
+  # Flower监控
+  flower:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: targetmanage_flower
+    command: celery -A app.main flower --port=5555
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis
+      - celery
+    networks:
+      - targetmanage_network
+    restart: unless-stopped
+
+networks:
+  targetmanage_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  backend_uploads:

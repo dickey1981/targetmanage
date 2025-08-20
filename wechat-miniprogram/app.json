@@ -1,0 +1,84 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/goals/list",
+    "pages/goals/detail",
+    "pages/goals/create",
+    "pages/tasks/list",
+    "pages/tasks/detail",
+    "pages/tasks/create",
+    "pages/progress/overview",
+    "pages/progress/detail",
+    "pages/profile/index",
+    "pages/auth/login"
+  ],
+  "window": {
+    "backgroundTextStyle": "dark",
+    "navigationBarBackgroundColor": "#1976D2",
+    "navigationBarTitleText": "目标管理",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f5f5f5"
+  },
+  "tabBar": {
+    "color": "#666666",
+    "selectedColor": "#1976D2",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "images/home.png",
+        "selectedIconPath": "images/home-active.png"
+      },
+      {
+        "pagePath": "pages/goals/list",
+        "text": "目标",
+        "iconPath": "images/goal.png",
+        "selectedIconPath": "images/goal-active.png"
+      },
+      {
+        "pagePath": "pages/tasks/list",
+        "text": "任务",
+        "iconPath": "images/task.png",
+        "selectedIconPath": "images/task-active.png"
+      },
+      {
+        "pagePath": "pages/progress/overview",
+        "text": "进度",
+        "iconPath": "images/progress.png",
+        "selectedIconPath": "images/progress-active.png"
+      },
+      {
+        "pagePath": "pages/profile/index",
+        "text": "我的",
+        "iconPath": "images/profile.png",
+        "selectedIconPath": "images/profile-active.png"
+      }
+    ]
+  },
+  "networkTimeout": {
+    "request": 10000,
+    "downloadFile": 10000
+  },
+  "debug": true,
+  "permission": {
+    "scope.userLocation": {
+      "desc": "你的位置信息将用于记录目标完成地点"
+    },
+    "scope.record": {
+      "desc": "需要使用你的麦克风权限，用于语音输入功能"
+    },
+    "scope.camera": {
+      "desc": "需要使用你的摄像头权限，用于拍照记录进度"
+    }
+  },
+  "requiredBackgroundModes": ["audio"],
+  "plugins": {
+    "WechatSI": {
+      "version": "0.3.3",
+      "provider": "wx069ba97219f66d99"
+    }
+  },
+  "usingComponents": {}
+}
