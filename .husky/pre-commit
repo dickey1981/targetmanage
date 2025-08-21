@@ -1,0 +1,24 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# 运行代码规范检查
+echo "🔍 检查代码规范..."
+
+# 检查JavaScript/TypeScript代码
+if [ -f "package.json" ]; then
+  echo "📱 检查前端代码..."
+  npm run lint:check
+  npm run format:check
+fi
+
+# 检查Python代码
+if [ -f "backend/requirements.txt" ]; then
+  echo "🐍 检查Python代码..."
+  cd backend
+  python -m black --check .
+  python -m isort --check-only .
+  python -m flake8 .
+  cd ..
+fi
+
+echo "✅ 代码规范检查完成！"

@@ -1,0 +1,134 @@
+<!--pages/index/index.wxml-->
+<view class="index-container">
+  <!-- 顶部欢迎区域 -->
+  <view class="welcome-section">
+    <view class="welcome-text">
+      <text class="greeting">{{greeting}}</text>
+      <text class="user-name">{{userInfo.nickName || '朋友'}}</text>
+    </view>
+    <view class="date-info">
+      <text class="current-date">{{currentDate}}</text>
+      <text class="week-day">{{weekDay}}</text>
+    </view>
+  </view>
+
+  <!-- 语音交互区域 -->
+  <view class="voice-section">
+    <view class="voice-button-container">
+      <button 
+        class="voice-button {{isRecording ? 'recording' : ''}}"
+        bindtouchstart="onVoiceStart"
+        bindtouchend="onVoiceEnd"
+        bindtouchcancel="onVoiceCancel"
+      >
+        <view class="voice-icon">
+          <image 
+            class="mic-icon" 
+            src="/images/{{isRecording ? 'mic-recording.png' : 'mic.png'}}"
+            mode="aspectFit"
+          ></image>
+        </view>
+        <text class="voice-text">{{isRecording ? '正在录音...' : '按住说话'}}</text>
+        <text class="voice-hint">说出您的目标或进度</text>
+      </button>
+    </view>
+    
+    <!-- 录音状态指示器 -->
+    <view class="recording-indicator" wx:if="{{isRecording}}">
+      <view class="wave-container">
+        <view class="wave-bar" wx:for="{{waveBars}}" wx:key="index" style="height: {{item}}rpx;"></view>
+      </view>
+      <text class="recording-time">{{recordingTime}}s</text>
+    </view>
+  </view>
+
+  <!-- 今日目标概览 -->
+  <view class="goals-overview">
+    <view class="section-header">
+      <text class="section-title">今日目标</text>
+      <text class="section-subtitle">{{todayGoals.length}}个进行中</text>
+    </view>
+    
+    <view class="goals-list" wx:if="{{todayGoals.length > 0}}">
+      <view 
+        class="goal-item" 
+        wx:for="{{todayGoals}}" 
+        wx:key="id"
+        bindtap="onGoalTap"
+        data-goal="{{item}}"
+      >
+        <view class="goal-info">
+          <text class="goal-title">{{item.title}}</text>
+          <text class="goal-category">{{item.category}}</text>
+        </view>
+        <view class="goal-progress">
+          <view class="progress-bar">
+            <view class="progress-fill" style="width: {{item.progress}}%"></view>
+          </view>
+          <text class="progress-text">{{item.progress}}%</text>
+        </view>
+        <view class="goal-status">
+          <text class="status-text {{item.status === 'urgent' ? 'urgent' : ''}}">
+            {{item.statusText}}
+          </text>
+        </view>
+      </view>
+    </view>
+    
+    <view class="empty-goals" wx:else>
+      <image class="empty-icon" src="/images/empty-goals.png" mode="aspectFit"></image>
+      <text class="empty-text">今天还没有目标</text>
+      <button class="create-goal-btn" bindtap="onCreateGoal">创建第一个目标</button>
+    </view>
+  </view>
+
+  <!-- 快速操作区域 -->
+  <view class="quick-actions">
+    <view class="action-item" bindtap="onQuickPhoto">
+      <image class="action-icon" src="/images/camera-icon.png" mode="aspectFit"></image>
+      <text class="action-text">拍照记录</text>
+    </view>
+    <view class="action-item" bindtap="onQuickVoice">
+      <image class="action-icon" src="/images/voice-icon.png" mode="aspectFit"></image>
+      <text class="action-text">语音记录</text>
+    </view>
+    <view class="action-item" bindtap="onQuickView">
+      <image class="action-icon" src="/images/timeline-icon.png" mode="aspectFit"></image>
+      <text class="action-text">查看进度</text>
+    </view>
+  </view>
+
+  <!-- 最近记录 -->
+  <view class="recent-records" wx:if="{{recentRecords.length > 0}}">
+    <view class="section-header">
+      <text class="section-title">最近记录</text>
+      <text class="section-subtitle">查看全部</text>
+    </view>
+    
+    <view class="records-list">
+      <view 
+        class="record-item" 
+        wx:for="{{recentRecords}}" 
+        wx:key="id"
+        bindtap="onRecordTap"
+        data-record="{{item}}"
+      >
+        <view class="record-icon">
+          <image class="icon" src="/images/{{item.type}}-icon.png" mode="aspectFit"></image>
+        </view>
+        <view class="record-content">
+          <text class="record-text">{{item.content}}</text>
+          <text class="record-time">{{item.time}}</text>
+        </view>
+        <view class="record-arrow">
+          <image class="arrow" src="/images/arrow-right.png" mode="aspectFit"></image>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部导航提示 -->
+  <view class="bottom-tips">
+    <text class="tip-text">左右滑动查看更多功能</text>
+  </view>
+</view>

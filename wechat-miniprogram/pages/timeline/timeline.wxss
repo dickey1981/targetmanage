@@ -1,0 +1,5 @@
+/* pages/timeline/timeline.wxss */
+.timeline-container {
+  padding: 40rpx;
+  text-align: center;
+}

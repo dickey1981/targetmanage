@@ -1,0 +1,4 @@
+<!--pages/process-record/process-record.wxml-->
+<view class="process-record-container">
+  <text>过程记录页面 - 开发中</text>
+</view>

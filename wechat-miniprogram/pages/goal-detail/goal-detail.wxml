@@ -1,0 +1,4 @@
+<!--pages/goal-detail/goal-detail.wxml-->
+<view class="goal-detail-container">
+  <text>目标详情页面 - 开发中</text>
+</view>

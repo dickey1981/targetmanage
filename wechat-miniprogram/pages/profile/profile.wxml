@@ -1,0 +1,144 @@
+<!--pages/profile/profile.wxml-->
+<view class="profile-container">
+  <!-- 用户信息头部 -->
+  <view class="user-header">
+    <view class="user-info">
+      <image class="user-avatar" src="{{userInfo.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
+      <view class="user-details">
+        <text class="user-nickname">{{userInfo.nickName || '未设置昵称'}}</text>
+        <text class="user-phone">{{maskedPhoneNumber || '未绑定手机号'}}</text>
+        <text class="user-id">ID: {{userInfo.userId || '--'}}</text>
+      </view>
+    </view>
+    <view class="user-actions">
+      <button class="edit-btn" bindtap="onEditProfile">
+        <image class="btn-icon" src="/images/edit-icon.png"></image>
+        <text>编辑</text>
+      </button>
+    </view>
+  </view>
+
+  <!-- 统计数据卡片 -->
+  <view class="stats-section">
+    <view class="stats-title">
+      <text>我的数据</text>
+    </view>
+    <view class="stats-grid">
+      <view class="stat-item">
+        <text class="stat-number">{{stats.totalGoals}}</text>
+        <text class="stat-label">总目标</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-number">{{stats.activeGoals}}</text>
+        <text class="stat-label">进行中</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-number">{{stats.completedGoals}}</text>
+        <text class="stat-label">已完成</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-number">{{stats.completionRate}}%</text>
+        <text class="stat-label">完成率</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 功能菜单 -->
+  <view class="menu-section">
+    <view class="menu-group">
+      <view class="menu-item" bindtap="onViewGoals">
+        <view class="menu-left">
+          <image class="menu-icon" src="/images/goals-icon.png"></image>
+          <text class="menu-text">我的目标</text>
+        </view>
+        <image class="arrow-icon" src="/images/arrow-right.png"></image>
+      </view>
+      
+      <view class="menu-item" bindtap="onViewTimeline">
+        <view class="menu-left">
+          <image class="menu-icon" src="/images/timeline-icon.png"></image>
+          <text class="menu-text">成长时间线</text>
+        </view>
+        <image class="arrow-icon" src="/images/arrow-right.png"></image>
+      </view>
+      
+      <view class="menu-item" bindtap="onViewAnalytics">
+        <view class="menu-left">
+          <image class="menu-icon" src="/images/analytics-icon.png"></image>
+          <text class="menu-text">数据分析</text>
+        </view>
+        <image class="arrow-icon" src="/images/arrow-right.png"></image>
+      </view>
+    </view>
+
+    <view class="menu-group">
+      <view class="menu-item" bindtap="onNotificationSettings">
+        <view class="menu-left">
+          <image class="menu-icon" src="/images/notification-icon.png"></image>
+          <text class="menu-text">通知设置</text>
+        </view>
+        <view class="menu-right">
+          <text class="menu-desc">{{notificationStatus}}</text>
+          <image class="arrow-icon" src="/images/arrow-right.png"></image>
+        </view>
+      </view>
+      
+      <view class="menu-item" bindtap="onPrivacySettings">
+        <view class="menu-left">
+          <image class="menu-icon" src="/images/privacy-icon.png"></image>
+          <text class="menu-text">隐私设置</text>
+        </view>
+        <image class="arrow-icon" src="/images/arrow-right.png"></image>
+      </view>
+      
+      <view class="menu-item" bindtap="onDataSync">
+        <view class="menu-left">
+          <image class="menu-icon" src="/images/sync-icon.png"></image>
+          <text class="menu-text">数据同步</text>
+        </view>
+        <view class="menu-right">
+          <text class="menu-desc">{{lastSyncTime}}</text>
+          <image class="arrow-icon" src="/images/arrow-right.png"></image>
+        </view>
+      </view>
+    </view>
+
+    <view class="menu-group">
+      <view class="menu-item" bindtap="onHelp">
+        <view class="menu-left">
+          <image class="menu-icon" src="/images/help-icon.png"></image>
+          <text class="menu-text">使用帮助</text>
+        </view>
+        <image class="arrow-icon" src="/images/arrow-right.png"></image>
+      </view>
+      
+      <view class="menu-item" bindtap="onFeedback">
+        <view class="menu-left">
+          <image class="menu-icon" src="/images/feedback-icon.png"></image>
+          <text class="menu-text">意见反馈</text>
+        </view>
+        <image class="arrow-icon" src="/images/arrow-right.png"></image>
+      </view>
+      
+      <view class="menu-item" bindtap="onAbout">
+        <view class="menu-left">
+          <image class="menu-icon" src="/images/about-icon.png"></image>
+          <text class="menu-text">关于我们</text>
+        </view>
+        <image class="arrow-icon" src="/images/arrow-right.png"></image>
+      </view>
+    </view>
+  </view>
+
+  <!-- 退出登录按钮 -->
+  <view class="logout-section">
+    <button class="logout-btn" bindtap="onLogout">
+      <text>退出登录</text>
+    </button>
+  </view>
+
+  <!-- 版本信息 -->
+  <view class="version-info">
+    <text class="version-text">版本 {{appVersion}}</text>
+  </view>
+</view>

@@ -1,58 +1,22 @@
-# FastAPI和相关依赖
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
-python-multipart==0.0.6
-
-# 数据库相关
 sqlalchemy==2.0.23
-alembic==1.13.1
 psycopg2-binary==2.9.9
-redis==5.0.1
-
-# 认证和安全
+alembic==1.12.1
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 python-multipart==0.0.6
+pydantic==2.5.0
+pydantic-settings==2.1.0
 
-# 环境变量和配置
-python-dotenv==1.0.0
-pydantic-settings==2.0.3
-
-# HTTP客户端
-httpx==0.25.2
-aiohttp==3.9.1
-
-# 图片和语音处理
-pillow==10.1.0
-opencv-python==4.8.1.78
-requests==2.31.0
-
-# 微信相关
-wechatpy==1.8.18
-
-# 任务队列
-celery==5.3.4
-flower==2.0.1
-
-# 日志和监控
-loguru==0.7.2
-prometheus-client==0.19.0
-
-# 测试
-pytest==7.4.3
-pytest-asyncio==0.21.1
-pytest-cov==4.1.0
-httpx==0.25.2
-
-# 腾讯云SDK
+# 腾讯云服务
 tencentcloud-sdk-python==3.0.1056
 cos-python-sdk-v5==1.9.25
-
-# 音频处理
 pydub==0.25.1
 
-# 开发工具
-black==23.11.0
-isort==5.12.0
-flake8==6.1.0
-pre-commit==3.6.0
+# 数据库
+asyncpg==0.29.0
+
+# 工具库
+python-dotenv==1.0.0
+requests==2.31.0

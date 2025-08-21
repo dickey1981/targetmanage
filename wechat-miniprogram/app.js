@@ -1,94 +1,107 @@
 // app.js
 App({
-  onLaunch() {
-    console.log('目标管理小程序启动')
-    
-    // 检查登录状态
-    this.checkLogin()
-    
-    // 初始化云开发
-    if (wx.cloud) {
-      wx.cloud.init({
-        // env 参数说明：
-        //   env 参数决定接下来小程序发起的云开发调用（wx.cloud.xxx）会默认请求到哪个云环境的资源
-        //   此处请填入环境 ID, 环境 ID 可打开云控制台查看
-        // traceUser: true,
-      })
-    }
-  },
-
-  onShow() {
-    // 小程序显示时执行
-  },
-
-  onHide() {
-    // 小程序隐藏时执行
-  },
-
-  onError(error) {
-    console.error('小程序错误:', error)
-  },
-
-  // 全局数据
   globalData: {
     userInfo: null,
     token: null,
-    baseUrl: 'http://localhost:8000/api/v1', // 后端API地址
-    isLogin: false
+    baseUrl: 'http://your-lighthouse-ip:8000', // 替换为您的Lighthouse服务器IP
+    isLoggedIn: false
+  },
+
+  onLaunch() {
+    console.log('小程序启动')
+    this.checkLoginStatus()
   },
 
   // 检查登录状态
-  checkLogin() {
+  checkLoginStatus() {
     const token = wx.getStorageSync('token')
-    if (token) {
+    const userInfo = wx.getStorageSync('userInfo')
+    
+    if (token && userInfo) {
       this.globalData.token = token
-      this.globalData.isLogin = true
+      this.globalData.userInfo = userInfo
+      this.globalData.isLoggedIn = true
       
       // 验证token有效性
       this.validateToken()
     }
   },
 
-  // 验证token
+  // 验证token有效性
   validateToken() {
-    const { request } = require('./utils/request')
-    
-    request({
-      url: '/auth/me',
-      method: 'GET'
-    }).then(res => {
-      this.globalData.userInfo = res.data
-      this.globalData.isLogin = true
-    }).catch(err => {
-      console.log('token验证失败:', err)
-      this.logout()
+    wx.request({
+      url: `${this.globalData.baseUrl}/api/auth/validate`,
+      method: 'GET',
+      header: {
+        'Authorization': `Bearer ${this.globalData.token}`
+      },
+      success: (res) => {
+        if (res.statusCode !== 200) {
+          this.logout()
+        }
+      },
+      fail: () => {
+        this.logout()
+      }
     })
   },
 
   // 登录
-  login(userInfo) {
-    this.globalData.userInfo = userInfo
-    this.globalData.isLogin = true
+  login(userInfo, phoneNumber) {
+    return new Promise((resolve, reject) => {
+      wx.request({
+        url: `${this.globalData.baseUrl}/api/auth/login`,
+        method: 'POST',
+        data: {
+          userInfo: userInfo,
+          phoneNumber: phoneNumber
+        },
+        success: (res) => {
+          if (res.statusCode === 200 && res.data.success) {
+            const { token, user } = res.data.data
+            
+            // 保存登录信息
+            this.globalData.token = token
+            this.globalData.userInfo = user
+            this.globalData.isLoggedIn = true
+            
+            wx.setStorageSync('token', token)
+            wx.setStorageSync('userInfo', user)
+            
+            resolve(user)
+          } else {
+            reject(new Error(res.data.message || '登录失败'))
+          }
+        },
+        fail: (err) => {
+          reject(err)
+        }
+      })
+    })
   },
 
   // 登出
   logout() {
-    this.globalData.userInfo = null
     this.globalData.token = null
-    this.globalData.isLogin = false
+    this.globalData.userInfo = null
+    this.globalData.isLoggedIn = false
     
     wx.removeStorageSync('token')
     wx.removeStorageSync('userInfo')
     
-    // 跳转到登录页面
+    // 跳转到登录页
     wx.reLaunch({
-      url: '/pages/auth/login'
+      url: '/pages/login/login'
     })
   },
 
-  // 设置token
-  setToken(token) {
-    this.globalData.token = token
-    wx.setStorageSync('token', token)
+  // 获取用户信息
+  getUserInfo() {
+    return this.globalData.userInfo
+  },
+
+  // 检查是否已登录
+  checkIsLoggedIn() {
+    return this.globalData.isLoggedIn
   }
 })

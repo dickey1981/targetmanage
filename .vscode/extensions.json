@@ -1,0 +1,30 @@
+{
+  "recommendations": [
+    // 代码规范检查
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "stylelint.vscode-stylelint",
+    
+    // 微信小程序开发
+    "minapp-vscode.minapp-vscode",
+    "qiu8310.minapp-vscode",
+    
+    // Python开发
+    "ms-python.python",
+    "ms-python.black-formatter",
+    "ms-python.isort",
+    "ms-python.flake8",
+    "ms-python.pylint",
+    
+    // Vue开发
+    "Vue.volar",
+    "Vue.vscode-typescript-vue-plugin",
+    
+    // 通用开发工具
+    "ms-vscode.vscode-json",
+    "bradlc.vscode-tailwindcss",
+    "formulahendry.auto-rename-tag",
+    "christian-kohler.path-intellisense",
+    "ms-vscode.vscode-typescript-next"
+  ]
+}

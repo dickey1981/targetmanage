@@ -1,0 +1,269 @@
+/* pages/login/login.wxss */
+
+.login-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 40rpx;
+  box-sizing: border-box;
+}
+
+/* Logo区域 */
+.logo-section {
+  margin-top: 120rpx;
+  text-align: center;
+  margin-bottom: 80rpx;
+}
+
+.logo {
+  width: 160rpx;
+  height: 160rpx;
+  margin-bottom: 40rpx;
+  border-radius: 50%;
+  box-shadow: 0 20rpx 40rpx rgba(0, 0, 0, 0.1);
+}
+
+.app-name {
+  display: block;
+  font-size: 48rpx;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 20rpx;
+}
+
+.app-slogan {
+  display: block;
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.5;
+}
+
+/* 登录区域 */
+.login-section {
+  width: 100%;
+  background: white;
+  border-radius: 32rpx;
+  padding: 60rpx 40rpx;
+  box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.1);
+  margin-bottom: 60rpx;
+}
+
+.welcome-text {
+  text-align: center;
+  margin-bottom: 60rpx;
+}
+
+.welcome-title {
+  display: block;
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20rpx;
+}
+
+.welcome-desc {
+  display: block;
+  font-size: 28rpx;
+  color: #666;
+  line-height: 1.5;
+}
+
+/* 授权按钮 */
+.auth-btn {
+  width: 100%;
+  height: 100rpx;
+  border-radius: 50rpx;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 30rpx;
+  font-size: 32rpx;
+  font-weight: 500;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.wechat-auth {
+  background: #1AAD19;
+  color: white;
+}
+
+.wechat-auth:active {
+  background: #179B16;
+  transform: scale(0.98);
+}
+
+.phone-auth {
+  background: #667eea;
+  color: white;
+}
+
+.phone-auth:active {
+  background: #5A6FD8;
+  transform: scale(0.98);
+}
+
+.login-btn {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  color: white;
+  font-size: 36rpx;
+  font-weight: 600;
+}
+
+.login-btn:active {
+  transform: scale(0.98);
+}
+
+.btn-icon {
+  width: 40rpx;
+  height: 40rpx;
+  margin-right: 20rpx;
+}
+
+.phone-desc {
+  font-size: 24rpx;
+  opacity: 0.8;
+  margin-left: 20rpx;
+}
+
+/* 授权说明 */
+.auth-tips {
+  margin-top: 40rpx;
+  padding: 30rpx;
+  background: #f8f9fa;
+  border-radius: 20rpx;
+}
+
+.tips-title {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20rpx;
+}
+
+.tips-item {
+  display: block;
+  font-size: 24rpx;
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 10rpx;
+}
+
+/* 用户信息预览 */
+.user-preview, .phone-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 30rpx 0;
+  padding: 20rpx;
+  background: #f0f8ff;
+  border-radius: 20rpx;
+}
+
+.user-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  margin-right: 20rpx;
+}
+
+.user-nickname {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #333;
+  margin-right: 20rpx;
+}
+
+.user-status, .phone-status {
+  font-size: 24rpx;
+  color: #1AAD19;
+  background: rgba(26, 173, 25, 0.1);
+  padding: 8rpx 16rpx;
+  border-radius: 20rpx;
+}
+
+.phone-icon {
+  width: 40rpx;
+  height: 40rpx;
+  margin-right: 20rpx;
+}
+
+.phone-number {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+/* 底部说明 */
+.footer-section {
+  text-align: center;
+  margin-bottom: 60rpx;
+}
+
+.footer-text {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.footer-link {
+  font-size: 24rpx;
+  color: white;
+  text-decoration: underline;
+}
+
+/* 加载状态 */
+.loading-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.loading-content {
+  background: white;
+  border-radius: 20rpx;
+  padding: 60rpx;
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 80rpx;
+  height: 80rpx;
+  border: 6rpx solid #f3f3f3;
+  border-top: 6rpx solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 30rpx;
+}
+
+.loading-text {
+  font-size: 28rpx;
+  color: #333;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 响应式适配 */
+@media (max-height: 700px) {
+  .logo-section {
+    margin-top: 80rpx;
+    margin-bottom: 60rpx;
+  }
+  
+  .login-section {
+    padding: 40rpx 30rpx;
+  }
+}

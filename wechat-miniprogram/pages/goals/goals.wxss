@@ -1,0 +1,5 @@
+/* pages/goals/goals.wxss */
+.goals-container {
+  padding: 40rpx;
+  text-align: center;
+}

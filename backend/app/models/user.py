@@ -1,62 +1,159 @@
 """
-用户模型
-User model for authentication and profile management
+用户数据模型
 """
-
-from sqlalchemy import Column, String, Boolean, DateTime, Text, Integer
+from sqlalchemy import Column, String, DateTime, Text, Boolean
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
+import uuid
+from pydantic import BaseModel, EmailStr
+from typing import Optional, List
 from datetime import datetime
 
-from .base import BaseModel
+from ..database import Base
 
-
-class User(BaseModel):
-    """用户模型"""
-    
+class User(Base):
+    """用户表"""
     __tablename__ = "users"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    wechat_id = Column(String(100), unique=True, nullable=False, index=True)
+    nickname = Column(String(100), nullable=False)
+    avatar = Column(Text, nullable=True)
+    phone_number = Column(String(20), nullable=True, index=True)
+    email = Column(String(100), nullable=True, index=True)
     
-    # 基本信息
-    username = Column(String(50), unique=True, index=True, nullable=False, comment="用户名")
-    email = Column(String(100), unique=True, index=True, nullable=True, comment="邮箱")
-    phone = Column(String(20), unique=True, index=True, nullable=True, comment="手机号")
-    hashed_password = Column(String(255), nullable=False, comment="加密密码")
+    # 用户偏好设置
+    notification_enabled = Column(Boolean, default=True)
+    privacy_level = Column(String(20), default="public")  # public, friends, private
     
-    # 个人信息
-    nickname = Column(String(50), nullable=True, comment="昵称")
-    avatar = Column(String(255), nullable=True, comment="头像URL")
-    gender = Column(Integer, default=0, comment="性别：0-未知，1-男，2-女")
-    birthday = Column(DateTime, nullable=True, comment="生日")
-    bio = Column(Text, nullable=True, comment="个人简介")
+    # 统计信息
+    total_goals = Column(String(10), default="0")
+    completed_goals = Column(String(10), default="0")
+    streak_days = Column(String(10), default="0")
     
-    # 微信信息
-    wechat_openid = Column(String(100), unique=True, index=True, nullable=True, comment="微信OpenID")
-    wechat_unionid = Column(String(100), unique=True, index=True, nullable=True, comment="微信UnionID")
-    wechat_nickname = Column(String(100), nullable=True, comment="微信昵称")
-    wechat_avatar = Column(String(255), nullable=True, comment="微信头像")
+    # 安全相关
+    is_verified = Column(Boolean, default=False)
+    is_active = Column(Boolean, default=True)
+    is_locked = Column(Boolean, default=False)
+    locked_until = Column(DateTime(timezone=True), nullable=True)
+    failed_login_attempts = Column(String(10), default="0")
     
-    # 状态信息
-    is_active = Column(Boolean, default=True, comment="是否激活")
-    is_verified = Column(Boolean, default=False, comment="是否验证")
-    is_superuser = Column(Boolean, default=False, comment="是否超级用户")
-    last_login = Column(DateTime, nullable=True, comment="最后登录时间")
+    # 时间戳
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    last_login_at = Column(DateTime(timezone=True), nullable=True)
     
-    # 设置信息
-    timezone = Column(String(50), default="Asia/Shanghai", comment="时区")
-    language = Column(String(10), default="zh-CN", comment="语言")
-    
-    # 关联关系
-    goals = relationship("Goal", back_populates="user", cascade="all, delete-orphan")
-    tasks = relationship("Task", back_populates="user", cascade="all, delete-orphan")
-    progresses = relationship("Progress", back_populates="user", cascade="all, delete-orphan")
-    
+    # 软删除
+    is_deleted = Column(Boolean, default=False)
+    deleted_at = Column(DateTime(timezone=True), nullable=True)
+
+    # 关系
+    sessions = relationship("UserSession", back_populates="user", cascade="all, delete-orphan")
+    login_attempts = relationship("LoginAttempt", back_populates="user", cascade="all, delete-orphan")
+    verifications = relationship("UserVerification", back_populates="user", cascade="all, delete-orphan")
+
     def __repr__(self):
-        return f"<User(id={self.id}, username='{self.username}')>"
-    
+        return f"<User(id={self.id}, nickname='{self.nickname}')>"
+
     @property
-    def display_name(self):
-        """显示名称"""
-        return self.nickname or self.username
-    
-    def is_goal_owner(self, goal_id: int) -> bool:
-        """检查是否为目标的所有者"""
-        return any(goal.id == goal_id for goal in self.goals)
+    def is_locked_out(self):
+        """检查用户是否被锁定"""
+        if not self.is_locked:
+            return False
+        if self.locked_until and datetime.utcnow() > self.locked_until:
+            self.is_locked = False
+            self.locked_until = None
+            return False
+        return True
+
+    def increment_failed_login_attempts(self):
+        """增加失败登录次数"""
+        current = int(self.failed_login_attempts)
+        self.failed_login_attempts = str(current + 1)
+        if current + 1 >= 5:  # 5次失败后锁定
+            self.is_locked = True
+            from datetime import timedelta
+            self.locked_until = datetime.utcnow() + timedelta(minutes=15)
+
+    def reset_failed_login_attempts(self):
+        """重置失败登录次数"""
+        self.failed_login_attempts = "0"
+        self.is_locked = False
+        self.locked_until = None
+
+# Pydantic模型
+class UserBase(BaseModel):
+    wechat_id: str
+    nickname: str
+    avatar: Optional[str] = None
+    phone_number: Optional[str] = None
+    email: Optional[EmailStr] = None
+
+class UserCreate(UserBase):
+    pass
+
+class UserUpdate(BaseModel):
+    nickname: Optional[str] = None
+    avatar: Optional[str] = None
+    phone_number: Optional[str] = None
+    email: Optional[EmailStr] = None
+    notification_enabled: Optional[bool] = None
+    privacy_level: Optional[str] = None
+
+class UserInDB(UserBase):
+    id: uuid.UUID
+    notification_enabled: bool
+    privacy_level: str
+    total_goals: str
+    completed_goals: str
+    streak_days: str
+    is_verified: bool
+    is_active: bool
+    is_locked: bool
+    locked_until: Optional[datetime] = None
+    failed_login_attempts: str
+    created_at: datetime
+    updated_at: datetime
+    last_login_at: Optional[datetime] = None
+    is_deleted: bool
+    deleted_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+class UserResponse(BaseModel):
+    id: str
+    wechat_id: str
+    nickname: str
+    avatar: Optional[str] = None
+    phone_number: Optional[str] = None
+    email: Optional[str] = None
+    notification_enabled: bool
+    privacy_level: str
+    total_goals: str
+    completed_goals: str
+    streak_days: str
+    is_verified: bool
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+    last_login_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+class UserProfileUpdate(BaseModel):
+    nickname: Optional[str] = None
+    avatar: Optional[str] = None
+    phone_number: Optional[str] = None
+    email: Optional[EmailStr] = None
+    notification_enabled: Optional[bool] = None
+    privacy_level: Optional[str] = None
+
+class UserStats(BaseModel):
+    total_goals: str
+    completed_goals: str
+    streak_days: str
+    completion_rate: float
+    current_streak: int

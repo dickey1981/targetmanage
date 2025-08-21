@@ -1,0 +1,570 @@
+/**
+ * 智能目标管理小程序 - 样式混入 (Mixins)
+ * 版本: v1.0
+ * 更新: 2025年1月
+ * 
+ * 使用说明:
+ * 1. 混入提供可复用的样式模式
+ * 2. 使用 @include 引入混入
+ * 3. 参数化混入可以接受自定义值
+ */
+
+// 引入变量文件
+@import './variables.scss';
+
+/* ==================== 通用布局混入 ==================== */
+
+// 弹性布局居中
+@mixin flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+// 垂直居中
+@mixin flex-center-vertical {
+  display: flex;
+  align-items: center;
+}
+
+// 水平居中
+@mixin flex-center-horizontal {
+  display: flex;
+  justify-content: center;
+}
+
+// 弹性布局 - 两端对齐
+@mixin flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+// 弹性布局 - 等间距分布
+@mixin flex-around {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+// 绝对居中定位
+@mixin absolute-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+// 固定比例容器
+@mixin aspect-ratio($width, $height) {
+  position: relative;
+  
+  &::before {
+    content: '';
+    display: block;
+    padding-top: percentage($height / $width);
+  }
+  
+  > * {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+/* ==================== 文字处理混入 ==================== */
+
+// 文字省略
+@mixin text-ellipsis($lines: 1) {
+  @if $lines == 1 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  } @else {
+    display: -webkit-box;
+    -webkit-line-clamp: $lines;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-all;
+  }
+}
+
+// 文字渲染优化
+@mixin text-rendering-optimize {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+// 禁用文字选择
+@mixin no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+// 允许文字换行
+@mixin text-break {
+  word-wrap: break-word;
+  word-break: break-all;
+  hyphens: auto;
+}
+
+/* ==================== 尺寸和间距混入 ==================== */
+
+// 设置尺寸
+@mixin size($width, $height: $width) {
+  width: $width;
+  height: $height;
+}
+
+// 设置圆角
+@mixin border-radius($radius) {
+  border-radius: $radius;
+}
+
+// 设置内边距
+@mixin padding($top, $right: $top, $bottom: $top, $left: $right) {
+  padding: $top $right $bottom $left;
+}
+
+// 设置外边距
+@mixin margin($top, $right: $top, $bottom: $top, $left: $right) {
+  margin: $top $right $bottom $left;
+}
+
+/* ==================== 组件样式混入 ==================== */
+
+// 卡片样式
+@mixin card-style($padding: $padding-component) {
+  background: $bg-card;
+  border-radius: $border-radius-md;
+  padding: $padding;
+  box-shadow: $shadow-card;
+}
+
+// 按钮基础样式
+@mixin button-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: all $tap-duration ease;
+  @include no-select;
+  @include text-rendering-optimize;
+  
+  &:active {
+    transform: scale($tap-scale);
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    
+    &:active {
+      transform: none;
+    }
+  }
+}
+
+// 按钮样式生成器
+@mixin button-style($bg-color, $text-color: white, $border-color: transparent) {
+  @include button-base;
+  background: $bg-color;
+  color: $text-color;
+  border: 2rpx solid $border-color;
+  border-radius: $border-radius-xl;
+  padding: $spacing-sm $spacing-lg;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  min-height: $min-touch-target;
+  
+  &:hover {
+    filter: brightness(1.1);
+  }
+}
+
+// 语音按钮样式
+@mixin voice-button-style($size: $voice-button-size) {
+  @include size($size);
+  @include flex-center;
+  flex-direction: column;
+  border-radius: $border-radius-round;
+  background: $primary-gradient;
+  box-shadow: $shadow-button;
+  border: none;
+  transition: all $voice-transition cubic-bezier(0.4, 0, 0.2, 1);
+  @include no-select;
+  
+  &.active {
+    background: $success-gradient;
+    transform: scale(1.1);
+    box-shadow: 0 25rpx 50rpx rgba(17, 153, 142, 0.4);
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
+  
+  &.disabled {
+    background: $border-medium;
+    box-shadow: none;
+    cursor: not-allowed;
+    
+    &:active {
+      transform: none;
+    }
+  }
+}
+
+// 进度条样式
+@mixin progress-bar-style($height: $progress-height) {
+  height: $height;
+  background: $border-light;
+  border-radius: calc($height / 2);
+  overflow: hidden;
+  
+  .fill, .progress-fill {
+    height: 100%;
+    background: $success-gradient;
+    border-radius: calc($height / 2);
+    transition: width $duration-normal ease;
+  }
+}
+
+// 输入框样式
+@mixin input-style {
+  width: 100%;
+  padding: $spacing-sm;
+  border: 2rpx solid $border-medium;
+  border-radius: $border-radius-sm;
+  font-size: $font-size-sm;
+  color: $text-primary;
+  background: $bg-primary;
+  transition: all $duration-fast ease;
+  min-height: $min-touch-target;
+  
+  &:focus {
+    border-color: $primary-color;
+    box-shadow: 0 0 0 4rpx rgba(102, 126, 234, 0.1);
+    outline: none;
+  }
+  
+  &::placeholder {
+    color: $text-placeholder;
+  }
+  
+  &:disabled {
+    background: $bg-secondary;
+    color: $text-disabled;
+    cursor: not-allowed;
+  }
+  
+  &.error {
+    border-color: $error-color;
+    
+    &:focus {
+      box-shadow: 0 0 0 4rpx rgba(255, 59, 48, 0.1);
+    }
+  }
+}
+
+/* ==================== 状态和交互混入 ==================== */
+
+// 悬停效果
+@mixin hover-effect($scale: $hover-scale) {
+  transition: all $hover-duration ease;
+  
+  &:hover {
+    transform: scale($scale);
+  }
+}
+
+// 点击反馈
+@mixin tap-feedback($scale: $tap-scale) {
+  transition: transform $tap-duration ease;
+  
+  &:active {
+    transform: scale($scale);
+  }
+}
+
+// 加载状态
+@mixin loading-state {
+  position: relative;
+  overflow: hidden;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.4),
+      transparent
+    );
+    animation: loading-shine 1.5s infinite;
+  }
+}
+
+// 禁用状态
+@mixin disabled-state {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ==================== 动画混入 ==================== */
+
+// 骨架屏动画
+@mixin skeleton-animation {
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 25%,
+    #e0e0e0 50%,
+    #f0f0f0 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+// 淡入动画
+@mixin fade-in-animation($duration: $duration-normal) {
+  animation: fade-in $duration ease-out;
+}
+
+// 滑入动画
+@mixin slide-up-animation($duration: $duration-normal) {
+  animation: slide-up $duration ease-out;
+}
+
+// 弹跳动画
+@mixin bounce-animation($duration: $duration-slow) {
+  animation: bounce $duration $ease-bounce;
+}
+
+// 脉冲动画
+@mixin pulse-animation($duration: $voice-pulse-duration) {
+  animation: pulse $duration infinite;
+}
+
+/* ==================== 响应式混入 ==================== */
+
+// 小屏设备
+@mixin small-screen {
+  @media screen and (max-width: $screen-small) {
+    @content;
+  }
+}
+
+// 中屏设备
+@mixin medium-screen {
+  @media screen and (min-width: $screen-medium) {
+    @content;
+  }
+}
+
+// 大屏设备
+@mixin large-screen {
+  @media screen and (min-width: $screen-large) {
+    @content;
+  }
+}
+
+// 深色模式
+@mixin dark-mode {
+  @media (prefers-color-scheme: dark) {
+    @content;
+  }
+}
+
+// 高对比度模式
+@mixin high-contrast {
+  @media (prefers-contrast: high) {
+    @content;
+  }
+}
+
+// 减少动画模式
+@mixin reduced-motion {
+  @media (prefers-reduced-motion: reduce) {
+    @content;
+  }
+}
+
+/* ==================== 工具类混入 ==================== */
+
+// 清除浮动
+@mixin clearfix {
+  &::after {
+    content: '';
+    display: table;
+    clear: both;
+  }
+}
+
+// 隐藏滚动条
+@mixin hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+// 自定义滚动条
+@mixin custom-scrollbar($width: 8rpx, $track-color: $bg-secondary, $thumb-color: $border-dark) {
+  &::-webkit-scrollbar {
+    width: $width;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: $track-color;
+    border-radius: calc($width / 2);
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: $thumb-color;
+    border-radius: calc($width / 2);
+    
+    &:hover {
+      background: darken($thumb-color, 10%);
+    }
+  }
+}
+
+// 安全区域适配
+@mixin safe-area-padding($position: 'all') {
+  @if $position == 'all' {
+    padding-top: constant(safe-area-inset-top);
+    padding-top: env(safe-area-inset-top);
+    padding-right: constant(safe-area-inset-right);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: constant(safe-area-inset-bottom);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: constant(safe-area-inset-left);
+    padding-left: env(safe-area-inset-left);
+  } @else if $position == 'top' {
+    padding-top: constant(safe-area-inset-top);
+    padding-top: env(safe-area-inset-top);
+  } @else if $position == 'bottom' {
+    padding-bottom: constant(safe-area-inset-bottom);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* ==================== 动画关键帧 ==================== */
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes loading-shine {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+@keyframes fade-in {
+  from { 
+    opacity: 0; 
+    transform: translateY(20rpx); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+@keyframes slide-up {
+  from { 
+    opacity: 0; 
+    transform: translateY(40rpx); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+@keyframes bounce {
+  0%, 20%, 53%, 80%, 100% {
+    transform: scale(1);
+  }
+  40%, 43% {
+    transform: scale(1.1);
+  }
+  70% {
+    transform: scale(1.05);
+  }
+  90% {
+    transform: scale(1.02);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { 
+    transform: scale(1); 
+    opacity: 1; 
+  }
+  50% { 
+    transform: scale(1.1); 
+    opacity: 0.8; 
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10rpx); }
+  75% { transform: translateX(10rpx); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ==================== 调试混入 ==================== */
+
+// 调试边框 (开发时使用)
+@mixin debug-border($color: #ff0000) {
+  border: 1rpx solid $color !important;
+}
+
+// 调试背景 (开发时使用)
+@mixin debug-background($color: rgba(255, 0, 0, 0.1)) {
+  background: $color !important;
+}
+
+/**
+ * 使用示例:
+ * 
+ * .my-button {
+ *   @include button-style($primary-color);
+ *   @include hover-effect;
+ * }
+ * 
+ * .my-card {
+ *   @include card-style;
+ *   @include fade-in-animation;
+ * }
+ * 
+ * .my-text {
+ *   @include text-ellipsis(2);
+ *   @include text-rendering-optimize;
+ * }
+ * 
+ * .voice-control {
+ *   @include voice-button-style;
+ *   @include pulse-animation;
+ * }
+ */

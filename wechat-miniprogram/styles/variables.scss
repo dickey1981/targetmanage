@@ -1,0 +1,265 @@
+/**
+ * 智能目标管理小程序 - 样式变量
+ * 版本: v1.0
+ * 更新: 2025年1月
+ * 
+ * 使用说明:
+ * 1. 所有页面和组件都应使用这些变量
+ * 2. 不要直接使用硬编码的颜色和尺寸值
+ * 3. 新增变量需要在设计规范中同步更新
+ */
+
+/* ==================== 色彩系统 ==================== */
+
+// 主色调 - 科技感渐变蓝
+$primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+$primary-color: #667eea;
+$primary-light: #8a9fff;
+$primary-dark: #4c63d2;
+
+// 辅助色 - 自然绿 (成功/进步)
+$success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+$success-color: #1AAD19;
+$success-light: #2DD03A;
+
+// 中性色系 - 文字
+$text-primary: #333333;        // 主要文字
+$text-secondary: #666666;      // 次要文字
+$text-placeholder: #999999;    // 占位文字
+$text-disabled: #cccccc;       // 禁用文字
+
+// 中性色系 - 背景
+$bg-primary: #ffffff;          // 主背景
+$bg-secondary: #f8f9fa;        // 次背景
+$bg-card: #ffffff;             // 卡片背景
+$bg-overlay: rgba(0,0,0,0.5);  // 遮罩背景
+
+// 中性色系 - 边框
+$border-light: #f0f0f0;        // 浅边框
+$border-medium: #e0e0e0;       // 中边框
+$border-dark: #d0d0d0;         // 深边框
+
+// 状态色系
+$warning-color: #FF9500;       // 警告橙
+$warning-light: #FFB84D;       // 浅警告色
+$warning-dark: #CC7700;        // 深警告色
+
+$error-color: #FF3B30;         // 错误红
+$error-light: #FF6B60;         // 浅错误色
+$error-dark: #E6342A;          // 深错误色
+
+$info-color: #007AFF;          // 信息蓝
+$info-light: #4DA6FF;          // 浅信息色
+$info-dark: #0056CC;           // 深信息色
+
+/* ==================== 字体系统 ==================== */
+
+// 字体大小层次 (rpx单位)
+$font-size-xl: 40rpx;          // 超大标题 - 页面主标题
+$font-size-lg: 36rpx;          // 大标题 - 卡片标题
+$font-size-md: 32rpx;          // 中标题 - 次级标题
+$font-size-sm: 28rpx;          // 正文标准 - 正文内容
+$font-size-xs: 24rpx;          // 辅助信息 - 说明文字
+$font-size-xxs: 20rpx;         // 说明文字 - 极小提示
+
+// 字体粗细
+$font-weight-bold: 600;        // 粗体 - 标题、重要信息
+$font-weight-medium: 500;      // 中粗 - 重要信息、按钮
+$font-weight-normal: 400;      // 正常 - 正文内容
+
+// 行高
+$line-height-tight: 1.2;       // 紧凑行高 - 标题
+$line-height-normal: 1.4;      // 正常行高 - 正文
+$line-height-loose: 1.6;       // 宽松行高 - 长段落
+
+/* ==================== 间距系统 ==================== */
+
+// 基础间距单位 (rpx)
+$spacing-xs: 10rpx;             // 极小间距
+$spacing-sm: 20rpx;             // 小间距
+$spacing-md: 30rpx;             // 中等间距
+$spacing-lg: 40rpx;             // 大间距
+$spacing-xl: 60rpx;             // 超大间距
+$spacing-xxl: 80rpx;            // 特大间距
+
+// 组件间距
+$padding-component: 30rpx;      // 组件内边距
+$margin-component: 20rpx;       // 组件外边距
+
+// 页面间距
+$padding-page: 20rpx;           // 页面边距
+$margin-section: 40rpx;         // 区块间距
+
+/* ==================== 圆角系统 ==================== */
+
+$border-radius-sm: 8rpx;        // 小圆角 - 按钮、输入框
+$border-radius-md: 16rpx;       // 中圆角 - 卡片
+$border-radius-lg: 24rpx;       // 大圆角 - 弹窗
+$border-radius-xl: 40rpx;       // 超大圆角 - 胶囊按钮
+$border-radius-round: 50%;      // 圆形 - 头像、语音按钮
+
+/* ==================== 阴影系统 ==================== */
+
+// 卡片阴影
+$shadow-card: 0 5rpx 15rpx rgba(0, 0, 0, 0.1);
+$shadow-card-hover: 0 10rpx 25rpx rgba(0, 0, 0, 0.15);
+
+// 浮层阴影
+$shadow-modal: 0 20rpx 40rpx rgba(0, 0, 0, 0.2);
+$shadow-dropdown: 0 10rpx 30rpx rgba(0, 0, 0, 0.15);
+
+// 按钮阴影
+$shadow-button: 0 8rpx 20rpx rgba(102, 126, 234, 0.3);
+$shadow-button-success: 0 8rpx 20rpx rgba(26, 173, 25, 0.3);
+
+/* ==================== 语音组件专用 ==================== */
+
+// 语音按钮尺寸
+$voice-button-size: 320rpx;     // 语音按钮直径
+$voice-button-size-small: 240rpx; // 小型语音按钮
+$voice-icon-size: 80rpx;        // 语音图标尺寸
+
+// 语音相关动画时长
+$voice-transition: 0.3s;       // 语音按钮过渡时间
+$voice-pulse-duration: 1.5s;   // 脉冲动画时长
+
+/* ==================== 进度条专用 ==================== */
+
+// 进度条尺寸
+$progress-height: 8rpx;         // 标准进度条高度
+$progress-height-large: 12rpx;  // 大进度条高度
+$progress-height-small: 6rpx;   // 小进度条高度
+
+/* ==================== 时间线专用 ==================== */
+
+// 时间线尺寸
+$timeline-line-width: 2rpx;     // 时间线主线宽度
+$timeline-node-size: 20rpx;     // 时间节点直径
+$timeline-node-large: 24rpx;    // 大时间节点
+$timeline-offset: 60rpx;        // 时间线左侧偏移
+
+/* ==================== 交互反馈 ==================== */
+
+// 点击反馈
+$tap-scale: 0.98;               // 点击缩放比例
+$tap-duration: 0.2s;           // 点击动画时长
+
+// 悬停反馈
+$hover-scale: 1.02;             // 悬停放大比例
+$hover-duration: 0.2s;         // 悬停动画时长
+
+/* ==================== 深色模式 ==================== */
+
+// CSS自定义属性，支持深色模式切换
+:root {
+  // 背景色
+  --bg-primary: #{$bg-primary};
+  --bg-secondary: #{$bg-secondary};
+  --bg-card: #{$bg-card};
+  
+  // 文字色
+  --text-primary: #{$text-primary};
+  --text-secondary: #{$text-secondary};
+  --text-placeholder: #{$text-placeholder};
+  
+  // 边框色
+  --border-color: #{$border-medium};
+}
+
+// 深色模式适配
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-primary: #1a1a1a;
+    --bg-secondary: #2d2d2d;
+    --bg-card: #333333;
+    --text-primary: #ffffff;
+    --text-secondary: #cccccc;
+    --text-placeholder: #888888;
+    --border-color: #404040;
+  }
+}
+
+/* ==================== 可访问性 ==================== */
+
+// 最小触摸区域
+$min-touch-target: 88rpx;       // 最小点击区域 (符合无障碍标准)
+
+// 最小字体大小
+$min-font-size: 24rpx;          // 最小字体，确保可读性
+
+/* ==================== Z-Index 层级 ==================== */
+
+$z-index-dropdown: 100;        // 下拉菜单
+$z-index-sticky: 200;          // 吸顶元素
+$z-index-fixed: 300;           // 固定定位
+$z-index-modal-backdrop: 1000; // 模态框背景
+$z-index-modal: 1001;          // 模态框
+$z-index-popover: 1002;        // 弹出层
+$z-index-tooltip: 1003;        // 工具提示
+$z-index-toast: 2000;          // Toast 提示
+
+/* ==================== 动画曲线 ==================== */
+
+// 缓动函数
+$ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+$ease-in-out-circ: cubic-bezier(0.85, 0, 0.15, 1);
+$ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+// 常用动画时长
+$duration-fast: 0.15s;         // 快速动画
+$duration-normal: 0.3s;        // 正常动画
+$duration-slow: 0.5s;          // 慢速动画
+
+/* ==================== 屏幕断点 ==================== */
+
+// 小程序常见屏幕尺寸
+$screen-small: 375px;          // iPhone SE
+$screen-medium: 414px;         // iPhone Pro
+$screen-large: 768px;          // iPad
+
+/* ==================== 安全区域 ==================== */
+
+// iOS刘海屏适配
+$safe-area-inset-top: env(safe-area-inset-top);
+$safe-area-inset-bottom: env(safe-area-inset-bottom);
+$safe-area-inset-left: env(safe-area-inset-left);
+$safe-area-inset-right: env(safe-area-inset-right);
+
+/* ==================== 微信小程序特殊 ==================== */
+
+// 导航栏高度
+$nav-bar-height: 88rpx;         // 导航栏高度
+$status-bar-height: var(--status-bar-height); // 状态栏高度
+
+// TabBar高度
+$tab-bar-height: 98rpx;         // 底部TabBar高度
+
+/* ==================== 调试工具 ==================== */
+
+// 调试模式下的边框 (开发时使用)
+$debug-border: 1rpx solid #ff0000;
+
+// 网格背景 (开发时使用)
+$debug-grid: repeating-linear-gradient(
+  0deg,
+  transparent,
+  transparent 9rpx,
+  rgba(255, 0, 0, 0.1) 10rpx
+);
+
+/**
+ * 使用示例:
+ * 
+ * .my-component {
+ *   background: $bg-card;
+ *   padding: $padding-component;
+ *   border-radius: $border-radius-md;
+ *   box-shadow: $shadow-card;
+ *   
+ *   .title {
+ *     font-size: $font-size-lg;
+ *     font-weight: $font-weight-medium;
+ *     color: $text-primary;
+ *   }
+ * }
+ */

@@ -25,8 +25,8 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     
     # 数据库配置
-    DATABASE_URL: str = "postgresql://user:password@localhost/targetmanage"
-    DATABASE_TEST_URL: str = "postgresql://user:password@localhost/targetmanage_test"
+    DATABASE_URL: str = "postgresql://postgres:password@localhost:5432/targetmanage"
+    DATABASE_TEST_URL: str = "postgresql://postgres:password@localhost:5432/targetmanage_test"
     
     # Redis配置
     REDIS_URL: str = "redis://localhost:6379/0"
@@ -34,6 +34,7 @@ class Settings(BaseSettings):
     
     # CORS配置
     ALLOWED_HOSTS: List[str] = ["*"]
+    ALLOWED_ORIGINS: List[str] = ["*"]
     
     # 文件上传配置
     UPLOAD_DIR: str = "uploads"
@@ -41,8 +42,9 @@ class Settings(BaseSettings):
     ALLOWED_EXTENSIONS: List[str] = [".jpg", ".jpeg", ".png", ".gif", ".mp3", ".wav", ".m4a"]
     
     # 微信小程序配置
-    WECHAT_APP_ID: str = ""
-    WECHAT_APP_SECRET: str = ""
+    WECHAT_APP_ID: str = "your-wechat-app-id"
+    WECHAT_APP_SECRET: str = "your-wechat-app-secret"
+    WECHAT_SESSION_KEY_EXPIRE: int = 7200  # 2小时
     
     # AI服务配置
     # 百度OCR
@@ -84,11 +86,25 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str = ""
     SMTP_TLS: bool = True
     
+    # 密码策略
+    MIN_PASSWORD_LENGTH: int = 8
+    PASSWORD_COMPLEXITY: bool = True
+    
+    # 登录策略
+    MAX_LOGIN_ATTEMPTS: int = 5
+    LOGIN_LOCKOUT_DURATION: int = 15  # 分钟
+    SESSION_TIMEOUT: int = 30  # 分钟
+    
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
         case_sensitive = True
 
 
+def get_settings() -> Settings:
+    """获取设置实例"""
+    return Settings()
+
+
 # 创建设置实例
-settings = Settings()
+settings = get_settings()

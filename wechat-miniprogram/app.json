@@ -1,84 +1,52 @@
 {
   "pages": [
+    "pages/login/login",
     "pages/index/index",
-    "pages/goals/list",
-    "pages/goals/detail",
-    "pages/goals/create",
-    "pages/tasks/list",
-    "pages/tasks/detail",
-    "pages/tasks/create",
-    "pages/progress/overview",
-    "pages/progress/detail",
-    "pages/profile/index",
-    "pages/auth/login"
+    "pages/profile/profile",
+    "pages/goals/goals",
+    "pages/goal-detail/goal-detail",
+    "pages/process-record/process-record",
+    "pages/timeline/timeline"
   ],
   "window": {
-    "backgroundTextStyle": "dark",
-    "navigationBarBackgroundColor": "#1976D2",
-    "navigationBarTitleText": "目标管理",
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#667eea",
+    "navigationBarTitleText": "智能目标管理",
     "navigationBarTextStyle": "white",
-    "backgroundColor": "#f5f5f5"
+    "backgroundColor": "#f8f9fa"
   },
   "tabBar": {
-    "color": "#666666",
-    "selectedColor": "#1976D2",
+    "color": "#999999",
+    "selectedColor": "#667eea",
     "backgroundColor": "#ffffff",
     "borderStyle": "black",
     "list": [
       {
         "pagePath": "pages/index/index",
         "text": "首页",
-        "iconPath": "images/home.png",
-        "selectedIconPath": "images/home-active.png"
+        "iconPath": "images/tab-home.png",
+        "selectedIconPath": "images/tab-home-active.png"
       },
       {
-        "pagePath": "pages/goals/list",
+        "pagePath": "pages/goals/goals",
         "text": "目标",
-        "iconPath": "images/goal.png",
-        "selectedIconPath": "images/goal-active.png"
+        "iconPath": "images/tab-goals.png",
+        "selectedIconPath": "images/tab-goals-active.png"
       },
       {
-        "pagePath": "pages/tasks/list",
-        "text": "任务",
-        "iconPath": "images/task.png",
-        "selectedIconPath": "images/task-active.png"
-      },
-      {
-        "pagePath": "pages/progress/overview",
-        "text": "进度",
-        "iconPath": "images/progress.png",
-        "selectedIconPath": "images/progress-active.png"
-      },
-      {
-        "pagePath": "pages/profile/index",
+        "pagePath": "pages/profile/profile",
         "text": "我的",
-        "iconPath": "images/profile.png",
-        "selectedIconPath": "images/profile-active.png"
+        "iconPath": "images/tab-profile.png",
+        "selectedIconPath": "images/tab-profile-active.png"
       }
     ]
   },
-  "networkTimeout": {
-    "request": 10000,
-    "downloadFile": 10000
-  },
-  "debug": true,
   "permission": {
     "scope.userLocation": {
-      "desc": "你的位置信息将用于记录目标完成地点"
-    },
-    "scope.record": {
-      "desc": "需要使用你的麦克风权限，用于语音输入功能"
-    },
-    "scope.camera": {
-      "desc": "需要使用你的摄像头权限，用于拍照记录进度"
+      "desc": "用于获取位置信息，提供更好的服务体验"
     }
   },
   "requiredBackgroundModes": ["audio"],
-  "plugins": {
-    "WechatSI": {
-      "version": "0.3.3",
-      "provider": "wx069ba97219f66d99"
-    }
-  },
-  "usingComponents": {}
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
 }

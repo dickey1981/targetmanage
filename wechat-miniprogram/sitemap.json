@@ -1,0 +1,9 @@
+{
+  "desc": "智能目标管理系统的sitemap配置",
+  "rules": [
+    {
+      "action": "allow",
+      "page": "*"
+    }
+  ]
+}

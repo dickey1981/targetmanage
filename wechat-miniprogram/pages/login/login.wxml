@@ -1,0 +1,85 @@
+<!--pages/login/login.wxml-->
+<view class="login-container">
+  <!-- 顶部Logo区域 -->
+  <view class="logo-section">
+    <image class="logo" src="/images/logo.png" mode="aspectFit"></image>
+    <text class="app-name">智能目标管理</text>
+    <text class="app-slogan">让目标管理变得简单智能</text>
+  </view>
+
+  <!-- 登录表单区域 -->
+  <view class="login-section">
+    <view class="welcome-text">
+      <text class="welcome-title">欢迎使用</text>
+      <text class="welcome-desc">请授权登录以开始您的目标管理之旅</text>
+    </view>
+
+    <!-- 微信用户信息授权 -->
+    <button 
+      class="auth-btn wechat-auth"
+      open-type="getUserInfo"
+      bindgetuserinfo="onGetUserInfo"
+      wx:if="{{!hasUserInfo}}"
+    >
+      <image class="btn-icon" src="/images/wechat-icon.png"></image>
+      <text>微信授权登录</text>
+    </button>
+
+    <!-- 手机号授权 -->
+    <button 
+      class="auth-btn phone-auth"
+      open-type="getPhoneNumber"
+      bindgetphonenumber="onGetPhoneNumber"
+      wx:if="{{hasUserInfo && !hasPhoneNumber}}"
+    >
+      <image class="btn-icon" src="/images/phone-icon.png"></image>
+      <text>授权手机号</text>
+      <text class="phone-desc">用于短信通知等服务</text>
+    </button>
+
+    <!-- 登录按钮 -->
+    <button 
+      class="auth-btn login-btn"
+      bindtap="onLogin"
+      wx:if="{{hasUserInfo && hasPhoneNumber}}"
+    >
+      <text>开始使用</text>
+    </button>
+
+    <!-- 授权说明 -->
+    <view class="auth-tips" wx:if="{{!hasUserInfo}}">
+      <text class="tips-title">授权说明</text>
+      <text class="tips-item">• 微信授权：获取您的头像和昵称</text>
+      <text class="tips-item">• 手机号授权：用于重要通知和账户安全</text>
+      <text class="tips-item">• 我们承诺保护您的隐私安全</text>
+    </view>
+
+    <!-- 用户信息预览 -->
+    <view class="user-preview" wx:if="{{hasUserInfo}}">
+      <image class="user-avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
+      <text class="user-nickname">{{userInfo.nickName}}</text>
+      <text class="user-status">已授权微信信息</text>
+    </view>
+
+    <!-- 手机号预览 -->
+    <view class="phone-preview" wx:if="{{hasPhoneNumber}}">
+      <image class="phone-icon" src="/images/phone-check.png"></image>
+      <text class="phone-status">已授权手机号</text>
+      <text class="phone-number">{{maskedPhoneNumber}}</text>
+    </view>
+  </view>
+
+  <!-- 底部说明 -->
+  <view class="footer-section">
+    <text class="footer-text">登录即表示同意</text>
+    <text class="footer-link" bindtap="onViewPrivacy">《用户协议和隐私政策》</text>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-mask" wx:if="{{isLoading}}">
+    <view class="loading-content">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">{{loadingText}}</text>
+    </view>
+  </view>
+</view>

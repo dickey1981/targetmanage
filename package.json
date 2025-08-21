@@ -1,0 +1,40 @@
+{
+  "name": "targetmanage",
+  "version": "1.0.0",
+  "description": "智能化目标管理系统",
+  "scripts": {
+    "lint": "eslint . --ext .js,.ts,.vue",
+    "lint:fix": "eslint . --ext .js,.ts,.vue --fix",
+    "lint:check": "eslint . --ext .js,.ts,.vue --max-warnings 0",
+    
+    "stylelint": "stylelint \"**/*.{css,scss,wxss}\"",
+    "stylelint:fix": "stylelint \"**/*.{css,scss,wxss}\" --fix",
+    "stylelint:check": "stylelint \"**/*.{css,scss,wxss}\" --max-warnings 0",
+    
+    "format": "prettier --write \"**/*.{js,ts,vue,json,md,scss,css,wxss}\"",
+    "format:check": "prettier --check \"**/*.{js,ts,vue,json,md,scss,css,wxss}\"",
+    
+    "lint:all": "npm run lint:check && npm run stylelint:check && npm run format:check",
+    "fix:all": "npm run lint:fix && npm run stylelint:fix && npm run format",
+    
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "@vue/eslint-config-prettier": "^8.0.0",
+    "@vue/eslint-config-typescript": "^11.0.0",
+    "eslint": "^8.0.0",
+    "eslint-plugin-vue": "^9.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "prettier": "^3.0.0",
+    "stylelint": "^15.0.0",
+    "stylelint-config-standard": "^34.0.0",
+    "stylelint-config-standard-scss": "^11.0.0",
+    "stylelint-scss": "^5.0.0",
+    "husky": "^8.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  }
+}

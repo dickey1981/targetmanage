@@ -1,0 +1,4 @@
+<!--pages/goals/goals.wxml-->
+<view class="goals-container">
+  <text>目标管理页面 - 开发中</text>
+</view>
