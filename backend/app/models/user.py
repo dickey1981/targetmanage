@@ -1,8 +1,7 @@
 """
 用户数据模型
 """
-from sqlalchemy import Column, String, DateTime, Text, Boolean
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, String, DateTime, Boolean, Text
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 import uuid
@@ -16,7 +15,7 @@ class User(Base):
     """用户表"""
     __tablename__ = "users"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     wechat_id = Column(String(100), unique=True, nullable=False, index=True)
     nickname = Column(String(100), nullable=False)
     avatar = Column(Text, nullable=True)
@@ -102,7 +101,7 @@ class UserUpdate(BaseModel):
     privacy_level: Optional[str] = None
 
 class UserInDB(UserBase):
-    id: uuid.UUID
+    id: str
     notification_enabled: bool
     privacy_level: str
     total_goals: str

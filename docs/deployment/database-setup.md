@@ -1,15 +1,15 @@
 # 腾讯云数据库配置指南
 
-本文档介绍如何在腾讯云上配置PostgreSQL和Redis数据库，并在开发和生产环境中使用。
+本文档介绍如何在腾讯云上配置MySQL和Redis数据库，并在开发和生产环境中使用。
 
-## 🗄️ PostgreSQL数据库配置
+## 🗄️ MySQL数据库配置
 
-### 1. 创建TencentDB for PostgreSQL实例
+### 1. 创建TencentDB for MySQL实例
 
 #### 通过腾讯云控制台创建
 
 1. 登录腾讯云控制台
-2. 进入"云数据库 TencentDB for PostgreSQL"
+2. 进入"云数据库 TencentDB for MySQL"
 3. 点击"新建"，配置实例：
 
 **基础配置**：
@@ -19,17 +19,17 @@
 - 网络：VPC网络（与CVM在同一VPC）
 
 **实例规格**：
-- 版本：PostgreSQL 13.3
+- 版本：MySQL 8.0（推荐）或 MySQL 5.7
 - 架构：基础版（开发）/ 高可用版（生产）
 - 规格：
-  - 开发环境：1核2GB，50GB存储
-  - 生产环境：4核8GB，200GB存储
+  - 开发环境：1核2GB，20GB存储
+  - 生产环境：2核4GB，100GB存储
 
 **设置信息**：
-- 实例名称：targetmanage-db
-- 管理员用户名：postgres
+- 实例名称：targetmanage-mysql
+- 管理员用户名：root
 - 密码：设置强密码
-- 端口：5432
+- 端口：3306
 
 #### 通过腾讯云CLI创建
 
@@ -42,21 +42,20 @@ tccli configure set secretId your-secret-id
 tccli configure set secretKey your-secret-key
 tccli configure set region ap-beijing
 
-# 创建PostgreSQL实例
-tccli postgres CreateInstances \
+# 创建MySQL实例
+tccli cdb CreateDBInstance \
     --region ap-beijing \
     --zone ap-beijing-3 \
     --projectid 0 \
-    --dbversion 13.3 \
-    --storage 50 \
-    --memory 2 \
-    --instancecount 1 \
+    --engineVersion 8.0 \
+    --memory 2048 \
+    --volume 20 \
+    --instanceCount 1 \
     --period 1 \
-    --charset UTF8 \
-    --adminname postgres \
-    --adminpassword "YourStrongPassword123!" \
-    --vpcid "vpc-xxxxxxxx" \
-    --subnetid "subnet-xxxxxxxx"
+    --charset utf8mb4 \
+    --rootPassword "YourStrongPassword123!" \
+    --vpcId "vpc-xxxxxxxx" \
+    --subnetId "subnet-xxxxxxxx"
 ```
 
 ### 2. 配置数据库安全
@@ -66,8 +65,8 @@ tccli postgres CreateInstances \
 ```bash
 # 创建安全组
 tccli cvm CreateSecurityGroup \
-    --groupname targetmanage-db-sg \
-    --groupdescription "Target Management Database Security Group"
+    --groupname targetmanage-mysql-sg \
+    --groupdescription "Target Management MySQL Security Group"
 
 # 添加入站规则（仅允许应用服务器访问）
 tccli cvm CreateSecurityGroupPolicies \
@@ -76,10 +75,10 @@ tccli cvm CreateSecurityGroupPolicies \
         "Ingress": [
             {
                 "Protocol": "TCP",
-                "Port": "5432",
+                "Port": "3306",
                 "CidrBlock": "10.0.0.0/8",
                 "Action": "ACCEPT",
-                "PolicyDescription": "Allow PostgreSQL access from VPC"
+                "PolicyDescription": "Allow MySQL access from VPC"
             }
         ]
     }'
@@ -87,40 +86,25 @@ tccli cvm CreateSecurityGroupPolicies \
 
 #### 创建应用数据库和用户
 
-连接到PostgreSQL实例：
+连接到MySQL实例：
 
 ```sql
 -- 创建应用数据库
-CREATE DATABASE targetmanage 
-    WITH OWNER = postgres 
-    ENCODING = 'UTF8' 
-    LC_COLLATE = 'en_US.UTF-8' 
-    LC_CTYPE = 'en_US.UTF-8';
-
-CREATE DATABASE targetmanage_test 
-    WITH OWNER = postgres 
-    ENCODING = 'UTF8' 
-    LC_COLLATE = 'en_US.UTF-8' 
-    LC_CTYPE = 'en_US.UTF-8';
+CREATE DATABASE targetmanage CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE targetmanage_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- 创建应用用户
-CREATE USER targetmanage_app WITH PASSWORD 'app_secure_password_123!';
+CREATE USER 'targetmanage_app'@'%' IDENTIFIED BY 'app_secure_password_123!';
 
 -- 授予权限
-GRANT ALL PRIVILEGES ON DATABASE targetmanage TO targetmanage_app;
-GRANT ALL PRIVILEGES ON DATABASE targetmanage_test TO targetmanage_app;
+GRANT ALL PRIVILEGES ON targetmanage.* TO 'targetmanage_app'@'%';
+GRANT ALL PRIVILEGES ON targetmanage_test.* TO 'targetmanage_app'@'%';
 
--- 连接到应用数据库
-\c targetmanage
+-- 刷新权限
+FLUSH PRIVILEGES;
 
--- 授予schema权限
-GRANT ALL ON SCHEMA public TO targetmanage_app;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO targetmanage_app;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO targetmanage_app;
-
--- 设置默认权限
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO targetmanage_app;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO targetmanage_app;
+-- 查看用户权限
+SHOW GRANTS FOR 'targetmanage_app'@'%';
 ```
 
 ### 3. 数据库连接配置
@@ -129,8 +113,8 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO targetmanage
 
 ```env
 # 生产环境数据库配置
-DATABASE_URL=postgresql://targetmanage_app:app_secure_password_123!@your-db-host.postgres.tencentcdb.com:5432/targetmanage
-DATABASE_TEST_URL=postgresql://targetmanage_app:app_secure_password_123!@your-db-host.postgres.tencentcdb.com:5432/targetmanage_test
+DATABASE_URL=mysql+pymysql://targetmanage_app:app_secure_password_123!@your-mysql-host.mysql.tencentcdb.com:3306/targetmanage
+DATABASE_TEST_URL=mysql+pymysql://targetmanage_app:app_secure_password_123!@your-mysql-host.mysql.tencentcdb.com:3306/targetmanage_test
 
 # 连接池配置
 DB_POOL_SIZE=20
@@ -145,21 +129,20 @@ DB_POOL_RECYCLE=3600
 
 ```bash
 # 通过CLI配置自动备份
-tccli postgres ModifyBackupConfig \
-    --dbinstanceid postgres-xxxxxxxx \
-    --minbackupstarttime "02:00:00" \
-    --maxbackupstarttime "04:00:00" \
-    --basebackupretentionperiod 7 \
-    --backupperiod "monday,tuesday,wednesday,thursday,friday,saturday,sunday"
+tccli cdb ModifyBackupConfig \
+    --instanceId cdb-xxxxxxxx \
+    --backupMethod "physical" \
+    --backupTime "02:00-04:00" \
+    --backupExpireDays 7
 ```
 
 #### 手动备份脚本
 
 ```bash
 #!/bin/bash
-# backup-db.sh
+# backup-mysql.sh
 
-DB_HOST="your-db-host.postgres.tencentcdb.com"
+DB_HOST="your-mysql-host.mysql.tencentcdb.com"
 DB_NAME="targetmanage"
 DB_USER="targetmanage_app"
 DB_PASSWORD="app_secure_password_123!"
@@ -170,14 +153,15 @@ DATE=$(date +%Y%m%d_%H%M%S)
 mkdir -p $BACKUP_DIR
 
 # 执行备份
-PGPASSWORD=$DB_PASSWORD pg_dump \
+mysqldump \
     -h $DB_HOST \
-    -U $DB_USER \
-    -d $DB_NAME \
-    --verbose \
-    --no-owner \
-    --no-privileges \
-    > "$BACKUP_DIR/targetmanage_$DATE.sql"
+    -u $DB_USER \
+    -p$DB_PASSWORD \
+    --single-transaction \
+    --routines \
+    --triggers \
+    --hex-blob \
+    $DB_NAME > "$BACKUP_DIR/targetmanage_$DATE.sql"
 
 # 压缩备份文件
 gzip "$BACKUP_DIR/targetmanage_$DATE.sql"
@@ -185,7 +169,7 @@ gzip "$BACKUP_DIR/targetmanage_$DATE.sql"
 # 删除7天前的备份
 find $BACKUP_DIR -name "*.sql.gz" -mtime +7 -delete
 
-echo "Database backup completed: targetmanage_$DATE.sql.gz"
+echo "MySQL backup completed: targetmanage_$DATE.sql.gz"
 ```
 
 ## 📊 Redis缓存配置
@@ -199,7 +183,7 @@ echo "Database backup completed: targetmanage_$DATE.sql.gz"
 
 **基础配置**：
 - 计费模式：按量计费
-- 地域：与PostgreSQL相同
+- 地域：与MySQL相同
 - 网络：VPC网络
 - 可用区：与应用服务器相同
 
@@ -285,7 +269,7 @@ class RedisMonitor:
 ```env
 # .env.development
 # 直接连接腾讯云数据库（开发专用实例）
-DATABASE_URL=postgresql://dev_user:dev_password@dev-db-host.postgres.tencentcdb.com:5432/targetmanage_dev
+DATABASE_URL=mysql+pymysql://dev_user:dev_password@dev-mysql-host.mysql.tencentcdb.com:3306/targetmanage_dev
 REDIS_URL=redis://:dev_redis_password@dev-redis-host.redis.tencentcdb.com:6379/0
 ```
 
@@ -293,7 +277,7 @@ REDIS_URL=redis://:dev_redis_password@dev-redis-host.redis.tencentcdb.com:6379/0
 
 ```bash
 # 安装依赖
-pip install alembic psycopg2-binary
+pip install alembic pymysql
 
 # 初始化Alembic（如果还没有）
 alembic init alembic
@@ -381,11 +365,11 @@ engine = create_engine(
     # 性能优化
     echo=False,             # 生产环境关闭SQL日志
     echo_pool=False,        # 关闭连接池日志
-    # 连接参数
+    # MySQL特定配置
     connect_args={
-        "connect_timeout": 10,
-        "application_name": "targetmanage",
-        "options": "-c timezone=Asia/Shanghai"
+        "charset": "utf8mb4",
+        "sql_mode": "STRICT_TRANS_TABLES,NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO",
+        "autocommit": False
     }
 )
 ```
@@ -421,7 +405,7 @@ class CacheManager:
             return self.redis.setex(
                 key, 
                 ttl, 
-                json.dumps(value, default=str)
+                json.dumps(value, default=str, ensure_ascii=False)
             )
         except Exception:
             return False
@@ -447,8 +431,8 @@ class CacheManager:
 ### 2. 连接安全
 
 ```python
-# 使用SSL连接
-DATABASE_URL=postgresql://user:pass@host:5432/db?sslmode=require
+# 使用SSL连接MySQL
+DATABASE_URL=mysql+pymysql://user:pass@host:3306/db?ssl_ca=/path/to/ca.pem
 
 # Redis使用TLS
 REDIS_URL=rediss://user:pass@host:6380/0
@@ -461,6 +445,56 @@ REDIS_URL=rediss://user:pass@host:6380/0
 - 定期审查权限
 - 监控异常访问
 
+## 💰 成本优化建议
+
+### 1. **开发环境**
+- 使用按量计费，按需启动
+- 选择最小规格：1核2GB，20GB存储
+- 预估成本：约￥30-50/月
+
+### 2. **生产环境**
+- 使用包年包月，享受折扣
+- 选择合适规格：2核4GB，100GB存储
+- 预估成本：约￥100-150/月
+
+### 3. **成本控制策略**
+- 合理设置自动备份保留天数
+- 监控数据库使用情况
+- 根据业务需求调整规格
+- 考虑使用预留实例获得更大折扣
+
+## 🚀 快速部署步骤
+
+### 1. **创建MySQL实例**
+```bash
+# 通过控制台创建MySQL实例
+# 选择规格：1核2GB，20GB存储
+# 设置密码：YourStrongPassword123!
+```
+
+### 2. **创建数据库和用户**
+```sql
+-- 连接到MySQL实例
+mysql -h your-host -u root -p
+
+-- 执行SQL脚本
+CREATE DATABASE targetmanage CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'targetmanage_app'@'%' IDENTIFIED BY 'app_secure_password_123!';
+GRANT ALL PRIVILEGES ON targetmanage.* TO 'targetmanage_app'@'%';
+FLUSH PRIVILEGES;
+```
+
+### 3. **更新应用配置**
+```env
+DATABASE_URL=mysql+pymysql://targetmanage_app:app_secure_password_123!@your-host:3306/targetmanage
+```
+
+### 4. **运行数据库迁移**
+```bash
+cd backend
+alembic upgrade head
+```
+
 ---
 
-通过以上配置，你的应用就可以安全、高效地使用腾讯云数据库服务了。
+通过以上配置，你的应用就可以安全、高效地使用腾讯云MySQL数据库服务了。MySQL相比PostgreSQL在成本上更有优势，同时保持了良好的性能和稳定性。

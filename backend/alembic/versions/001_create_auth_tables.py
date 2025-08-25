@@ -7,7 +7,7 @@ Create Date: 2024-01-01 00:00:00.000000
 """
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
+from sqlalchemy.dialects import mysql
 
 # revision identifiers, used by Alembic.
 revision = '001'
@@ -19,24 +19,24 @@ depends_on = None
 def upgrade():
     # 创建用户表
     op.create_table('users',
-        sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column('wechat_id', sa.String(length=100), nullable=False),
-        sa.Column('nickname', sa.String(length=100), nullable=False),
+        sa.Column('id', sa.String(36), nullable=False),
+        sa.Column('wechat_id', sa.String(100), nullable=False),
+        sa.Column('nickname', sa.String(100), nullable=False),
         sa.Column('avatar', sa.Text(), nullable=True),
-        sa.Column('phone_number', sa.String(length=20), nullable=True),
-        sa.Column('email', sa.String(length=100), nullable=True),
+        sa.Column('phone_number', sa.String(20), nullable=True),
+        sa.Column('email', sa.String(100), nullable=True),
         sa.Column('notification_enabled', sa.Boolean(), nullable=True),
-        sa.Column('privacy_level', sa.String(length=20), nullable=True),
-        sa.Column('total_goals', sa.String(length=10), nullable=True),
-        sa.Column('completed_goals', sa.String(length=10), nullable=True),
-        sa.Column('streak_days', sa.String(length=10), nullable=True),
+        sa.Column('privacy_level', sa.String(20), nullable=True),
+        sa.Column('total_goals', sa.String(10), nullable=True),
+        sa.Column('completed_goals', sa.String(10), nullable=True),
+        sa.Column('streak_days', sa.String(10), nullable=True),
         sa.Column('is_verified', sa.Boolean(), nullable=True),
         sa.Column('is_active', sa.Boolean(), nullable=True),
         sa.Column('is_locked', sa.Boolean(), nullable=True),
         sa.Column('locked_until', sa.DateTime(timezone=True), nullable=True),
-        sa.Column('failed_login_attempts', sa.String(length=10), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('failed_login_attempts', sa.String(10), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
+        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'), nullable=True),
         sa.Column('last_login_at', sa.DateTime(timezone=True), nullable=True),
         sa.Column('is_deleted', sa.Boolean(), nullable=True),
         sa.Column('deleted_at', sa.DateTime(timezone=True), nullable=True),
@@ -50,17 +50,17 @@ def upgrade():
     
     # 创建用户会话表
     op.create_table('user_sessions',
-        sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column('user_id', postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column('session_token', sa.String(length=255), nullable=False),
-        sa.Column('refresh_token', sa.String(length=255), nullable=False),
+        sa.Column('id', sa.String(36), nullable=False),
+        sa.Column('user_id', sa.String(36), nullable=False),
+        sa.Column('session_token', sa.String(255), nullable=False),
+        sa.Column('refresh_token', sa.String(255), nullable=False),
         sa.Column('device_info', sa.Text(), nullable=True),
-        sa.Column('ip_address', sa.String(length=45), nullable=True),
+        sa.Column('ip_address', sa.String(45), nullable=True),
         sa.Column('user_agent', sa.Text(), nullable=True),
         sa.Column('is_active', sa.Boolean(), nullable=True),
         sa.Column('expires_at', sa.DateTime(timezone=True), nullable=False),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
+        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'), nullable=True),
         sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
         sa.PrimaryKeyConstraint('id')
     )
@@ -72,15 +72,15 @@ def upgrade():
     
     # 创建登录尝试记录表
     op.create_table('login_attempts',
-        sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column('user_id', postgresql.UUID(as_uuid=True), nullable=True),
-        sa.Column('wechat_id', sa.String(length=100), nullable=True),
-        sa.Column('phone_number', sa.String(length=20), nullable=True),
-        sa.Column('ip_address', sa.String(length=45), nullable=True),
+        sa.Column('id', sa.String(36), nullable=False),
+        sa.Column('user_id', sa.String(36), nullable=True),
+        sa.Column('wechat_id', sa.String(100), nullable=True),
+        sa.Column('phone_number', sa.String(20), nullable=True),
+        sa.Column('ip_address', sa.String(45), nullable=True),
         sa.Column('user_agent', sa.Text(), nullable=True),
         sa.Column('success', sa.Boolean(), nullable=True),
         sa.Column('failure_reason', sa.Text(), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
         sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
         sa.PrimaryKeyConstraint('id')
     )
@@ -92,13 +92,13 @@ def upgrade():
     
     # 创建用户验证表
     op.create_table('user_verifications',
-        sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column('user_id', postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column('verification_type', sa.String(length=50), nullable=False),
-        sa.Column('verification_code', sa.String(length=10), nullable=False),
+        sa.Column('id', sa.String(36), nullable=False),
+        sa.Column('user_id', sa.String(36), nullable=False),
+        sa.Column('verification_type', sa.String(50), nullable=False),
+        sa.Column('verification_code', sa.String(10), nullable=False),
         sa.Column('expires_at', sa.DateTime(timezone=True), nullable=False),
         sa.Column('is_used', sa.Boolean(), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
         sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
         sa.PrimaryKeyConstraint('id')
     )

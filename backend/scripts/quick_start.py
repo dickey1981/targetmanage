@@ -21,7 +21,7 @@ def check_dependencies():
     try:
         import fastapi
         import sqlalchemy
-        import psycopg2
+        import pymysql
         import redis
         import jwt
         logger.info("✅ Python依赖检查通过")
@@ -33,7 +33,7 @@ def check_dependencies():
 
 def check_database():
     """检查数据库连接"""
-    logger.info("检查数据库连接...")
+    logger.info("检查MySQL数据库连接...")
     
     try:
         from app.config.settings import get_settings
@@ -45,12 +45,12 @@ def check_database():
         # 测试连接
         with engine.connect() as conn:
             result = conn.execute("SELECT 1")
-            logger.info("✅ 数据库连接成功")
+            logger.info("✅ MySQL数据库连接成功")
             return True
             
     except Exception as e:
-        logger.error(f"❌ 数据库连接失败: {e}")
-        logger.info("请检查数据库配置和连接")
+        logger.error(f"❌ MySQL数据库连接失败: {e}")
+        logger.info("请检查MySQL配置和连接")
         return False
 
 def check_redis():
@@ -77,7 +77,7 @@ def check_redis():
 
 def run_migrations():
     """运行数据库迁移"""
-    logger.info("运行数据库迁移...")
+    logger.info("运行MySQL数据库迁移...")
     
     try:
         backend_dir = Path(__file__).parent.parent
@@ -91,10 +91,10 @@ def run_migrations():
         )
         
         if result.returncode == 0:
-            logger.info("✅ 数据库迁移成功")
+            logger.info("✅ MySQL数据库迁移成功")
             return True
         else:
-            logger.error(f"❌ 数据库迁移失败: {result.stderr}")
+            logger.error(f"❌ MySQL数据库迁移失败: {result.stderr}")
             return False
             
     except Exception as e:
@@ -143,7 +143,7 @@ def main():
     
     # 检查数据库
     if not check_database():
-        logger.warning("⚠️  数据库连接失败，但继续启动...")
+        logger.warning("⚠️  MySQL数据库连接失败，但继续启动...")
     
     # 检查Redis
     if not check_redis():
@@ -151,7 +151,7 @@ def main():
     
     # 运行迁移
     if not run_migrations():
-        logger.warning("⚠️  数据库迁移失败，但继续启动...")
+        logger.warning("⚠️  MySQL数据库迁移失败，但继续启动...")
     
     logger.info("=" * 50)
     

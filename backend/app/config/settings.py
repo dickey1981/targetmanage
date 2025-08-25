@@ -24,9 +24,9 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     
-    # 数据库配置
-    DATABASE_URL: str = "postgresql://postgres:password@localhost:5432/targetmanage"
-    DATABASE_TEST_URL: str = "postgresql://postgres:password@localhost:5432/targetmanage_test"
+    # 数据库配置（使用同一个数据库）
+    DATABASE_URL: str = "mysql+pymysql://root:targetM123@10.0.4.11:3306/targetmanage"
+    DATABASE_TEST_URL: str = "mysql+pymysql://root:targetM123@10.0.4.11:3306/targetmanage"
     
     # Redis配置
     REDIS_URL: str = "redis://localhost:6379/0"

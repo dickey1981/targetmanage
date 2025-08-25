@@ -5,8 +5,7 @@
 """
 import os
 import sys
-import psycopg2
-from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+import pymysql
 import logging
 
 # 添加项目根目录到Python路径
@@ -24,34 +23,33 @@ def create_database():
     
     # 解析数据库URL
     db_url = settings.DATABASE_URL
-    db_parts = db_url.replace("postgresql://", "").split("/")
+    db_parts = db_url.replace("mysql+pymysql://", "").split("/")
     db_host_port = db_parts[0].split(":")
     db_host = db_host_port[0]
-    db_port = int(db_host_port[1]) if len(db_host_port) > 1 else 5432
+    db_port = int(db_host_port[1]) if len(db_host_port) > 1 else 3306
     db_user_pass = db_parts[0].split("@")[0].split(":")
     db_user = db_user_pass[0]
     db_password = db_user_pass[1] if len(db_user_pass) > 1 else ""
     db_name = db_parts[1]
     
     try:
-        # 连接到PostgreSQL服务器
-        conn = psycopg2.connect(
+        # 连接到MySQL服务器
+        conn = pymysql.connect(
             host=db_host,
             port=db_port,
             user=db_user,
             password=db_password,
-            database="postgres"  # 连接到默认数据库
+            charset='utf8mb4'
         )
-        conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         cursor = conn.cursor()
         
         # 检查数据库是否存在
-        cursor.execute("SELECT 1 FROM pg_database WHERE datname = %s", (db_name,))
+        cursor.execute("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = %s", (db_name,))
         exists = cursor.fetchone()
         
         if not exists:
             # 创建数据库
-            cursor.execute(f"CREATE DATABASE {db_name}")
+            cursor.execute(f"CREATE DATABASE {db_name} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
             logger.info(f"数据库 {db_name} 创建成功")
         else:
             logger.info(f"数据库 {db_name} 已存在")
@@ -93,7 +91,6 @@ def run_migrations():
         backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         os.chdir(backend_dir)
         
-        # 运行Alembic迁移
         result = subprocess.run(
             ["alembic", "upgrade", "head"],
             capture_output=True,
@@ -102,14 +99,14 @@ def run_migrations():
         )
         
         if result.returncode == 0:
-            logger.info("数据库迁移成功")
+            logger.info("✅ MySQL数据库迁移成功")
             return True
         else:
-            logger.error(f"数据库迁移失败: {result.stderr}")
+            logger.error(f"❌ MySQL数据库迁移失败: {result.stderr}")
             return False
             
     except Exception as e:
-        logger.error(f"运行数据库迁移失败: {e}")
+        logger.error(f"❌ 运行迁移失败: {e}")
         return False
 
 def create_initial_data():
@@ -131,7 +128,7 @@ def create_initial_data():
         
         # 创建测试用户
         test_user = User(
-            id=uuid.uuid4(),
+            id=str(uuid.uuid4()),
             wechat_id="test_wechat_id",
             nickname="测试用户",
             avatar="https://example.com/avatar.jpg",
@@ -161,7 +158,7 @@ def create_initial_data():
 
 def main():
     """主函数"""
-    logger.info("开始初始化数据库...")
+    logger.info("开始初始化MySQL数据库...")
     
     # 1. 创建数据库
     if not create_database():
@@ -183,7 +180,7 @@ def main():
         logger.error("初始数据创建失败，退出")
         sys.exit(1)
     
-    logger.info("数据库初始化完成！")
+    logger.info("MySQL数据库初始化完成！")
 
 if __name__ == "__main__":
     main()

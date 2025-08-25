@@ -2,7 +2,6 @@
 用户会话和登录记录模型
 """
 from sqlalchemy import Column, String, DateTime, Boolean, Text, Integer, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 import uuid
@@ -16,8 +15,8 @@ class UserSession(Base):
     """用户会话表"""
     __tablename__ = "user_sessions"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=False, index=True)
     session_token = Column(String(255), unique=True, nullable=False, index=True)
     refresh_token = Column(String(255), unique=True, nullable=False, index=True)
     device_info = Column(Text, nullable=True)  # 设备信息
@@ -38,8 +37,8 @@ class LoginAttempt(Base):
     """登录尝试记录表"""
     __tablename__ = "login_attempts"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True, index=True)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=True, index=True)
     wechat_id = Column(String(100), nullable=True, index=True)
     phone_number = Column(String(20), nullable=True, index=True)
     ip_address = Column(String(45), nullable=True)
@@ -58,8 +57,8 @@ class UserVerification(Base):
     """用户验证表"""
     __tablename__ = "user_verifications"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=False, index=True)
     verification_type = Column(String(50), nullable=False)  # phone, email, wechat
     verification_code = Column(String(10), nullable=False)
     expires_at = Column(DateTime(timezone=True), nullable=False)
@@ -74,7 +73,7 @@ class UserVerification(Base):
 
 # Pydantic模型
 class UserSessionBase(BaseModel):
-    user_id: uuid.UUID
+    user_id: str
     device_info: Optional[str] = None
     ip_address: Optional[str] = None
     user_agent: Optional[str] = None
@@ -85,7 +84,7 @@ class UserSessionCreate(UserSessionBase):
     expires_at: datetime
 
 class UserSessionResponse(UserSessionBase):
-    id: uuid.UUID
+    id: str
     session_token: str
     refresh_token: str
     is_active: bool
@@ -107,8 +106,8 @@ class LoginAttemptCreate(LoginAttemptBase):
     failure_reason: Optional[str] = None
 
 class LoginAttemptResponse(LoginAttemptBase):
-    id: uuid.UUID
-    user_id: Optional[uuid.UUID] = None
+    id: str
+    user_id: Optional[str] = None
     success: bool
     failure_reason: Optional[str] = None
     created_at: datetime
@@ -117,7 +116,7 @@ class LoginAttemptResponse(LoginAttemptBase):
         from_attributes = True
 
 class UserVerificationBase(BaseModel):
-    user_id: uuid.UUID
+    user_id: str
     verification_type: str
     verification_code: str
     expires_at: datetime
@@ -126,7 +125,7 @@ class UserVerificationCreate(UserVerificationBase):
     pass
 
 class UserVerificationResponse(UserVerificationBase):
-    id: uuid.UUID
+    id: str
     is_used: bool
     created_at: datetime
 
