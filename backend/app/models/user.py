@@ -47,10 +47,11 @@ class User(Base):
     is_deleted = Column(Boolean, default=False)
     deleted_at = Column(DateTime(timezone=True), nullable=True)
 
-    # 关系
-    sessions = relationship("UserSession", back_populates="user", cascade="all, delete-orphan")
-    login_attempts = relationship("LoginAttempt", back_populates="user", cascade="all, delete-orphan")
-    verifications = relationship("UserVerification", back_populates="user", cascade="all, delete-orphan")
+    # 关系 - 暂时注释掉，避免循环导入
+    # sessions = relationship("UserSession", back_populates="user", cascade="all, delete-orphan")
+    # login_attempts = relationship("LoginAttempt", back_populates="user", cascade="all, delete-orphan")
+    # verifications = relationship("UserVerification", back_populates="user", cascade="all, delete-orphan")
+    # goals = relationship("Goal", back_populates="user", cascade="all, delete-orphan", lazy="select")
 
     def __repr__(self):
         return f"<User(id={self.id}, nickname='{self.nickname}')>"

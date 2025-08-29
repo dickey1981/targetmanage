@@ -4,21 +4,29 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
+from sqlalchemy.pool import QueuePool
 import os
 
-# 数据库配置
-DATABASE_URL = os.getenv(
-    "DATABASE_URL", 
-    "postgresql://postgres:password@localhost:5432/targetmanage"
-)
+# 从配置获取数据库URL
+from .config.settings import get_settings
 
-# 创建数据库引擎
+settings = get_settings()
+DATABASE_URL = settings.DATABASE_URL
+
+# 创建数据库引擎（MySQL配置）
 engine = create_engine(
     DATABASE_URL,
-    poolclass=StaticPool,
+    poolclass=QueuePool,
+    pool_size=5,
+    max_overflow=10,
     pool_pre_ping=True,
-    echo=False  # 生产环境设为False
+    pool_recycle=3600,
+    echo=False,  # 生产环境设为False
+    connect_args={
+        "charset": "utf8mb4",
+        "sql_mode": "STRICT_TRANS_TABLES,NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO",
+        "autocommit": False
+    }
 )
 
 # 创建会话工厂

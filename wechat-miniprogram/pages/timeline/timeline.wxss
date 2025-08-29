@@ -1,5 +1,64 @@
 /* pages/timeline/timeline.wxss */
 .timeline-container {
+  min-height: 100vh;
+  background: #ffffff;
   padding: 40rpx;
   text-align: center;
+}
+
+.timeline-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20rpx;
+}
+
+.timeline-subtitle {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 40rpx;
+}
+
+.timeline-content {
+  background: #f8f9fa;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-top: 20rpx;
+}
+
+.timeline-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #eee;
+}
+
+.timeline-item:last-child {
+  border-bottom: none;
+}
+
+.timeline-icon {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #00B4D8 0%, #0096C7 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 20rpx;
+  margin-right: 20rpx;
+}
+
+.timeline-text {
+  flex: 1;
+  text-align: left;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.timeline-time {
+  font-size: 24rpx;
+  color: #999;
+  margin-left: 20rpx;
 }

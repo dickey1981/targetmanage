@@ -12,7 +12,13 @@ from .settings import get_settings
 settings = get_settings()
 
 # 数据库连接URL
-DATABASE_URL = settings.DATABASE_URL
+# 根据配置选择使用本地还是远程数据库
+if settings.USE_LOCAL_DB:
+    DATABASE_URL = settings.LOCAL_DATABASE_URL
+    print(f"🔧 使用本地数据库: {DATABASE_URL}")
+else:
+    DATABASE_URL = settings.DATABASE_URL
+    print(f"☁️ 使用远程数据库: {DATABASE_URL}")
 
 # 创建数据库引擎
 engine = create_engine(

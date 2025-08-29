@@ -1,23 +1,24 @@
 {
   "pages": [
-    "pages/login/login",
     "pages/index/index",
-    "pages/profile/profile",
     "pages/goals/goals",
+    "pages/record/record",
+    "pages/timeline/timeline",
+    "pages/profile/profile",
     "pages/goal-detail/goal-detail",
     "pages/process-record/process-record",
-    "pages/timeline/timeline"
+    "pages/create-goal/create-goal"
   ],
   "window": {
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#667eea",
+    "navigationBarBackgroundColor": "#00B4D8",
     "navigationBarTitleText": "智能目标管理",
     "navigationBarTextStyle": "white",
-    "backgroundColor": "#f8f9fa"
+    "backgroundColor": "#ffffff"
   },
   "tabBar": {
     "color": "#999999",
-    "selectedColor": "#667eea",
+    "selectedColor": "#00B4D8",
     "backgroundColor": "#ffffff",
     "borderStyle": "black",
     "list": [
@@ -32,6 +33,18 @@
         "text": "目标",
         "iconPath": "images/tab-goals.png",
         "selectedIconPath": "images/tab-goals-active.png"
+      },
+      {
+        "pagePath": "pages/record/record",
+        "text": "记录",
+        "iconPath": "images/tab-record.png",
+        "selectedIconPath": "images/tab-record-active.png"
+      },
+      {
+        "pagePath": "pages/timeline/timeline",
+        "text": "时间线",
+        "iconPath": "images/timeline-icon.png",
+        "selectedIconPath": "images/timeline-icon.png"
       },
       {
         "pagePath": "pages/profile/profile",

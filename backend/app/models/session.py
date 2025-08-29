@@ -27,8 +27,8 @@ class UserSession(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
-    # 关系
-    user = relationship("User", back_populates="sessions")
+    # 关系 - 暂时注释掉，避免循环导入
+    # user = relationship("User", back_populates="sessions")
 
     def __repr__(self):
         return f"<UserSession(id={self.id}, user_id={self.user_id})>"
@@ -47,8 +47,8 @@ class LoginAttempt(Base):
     failure_reason = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    # 关系
-    user = relationship("User", back_populates="login_attempts")
+    # 关系 - 暂时注释掉，避免循环导入
+    # user = relationship("User", back_populates="login_attempts")
 
     def __repr__(self):
         return f"<LoginAttempt(id={self.id}, success={self.success})>"
@@ -65,8 +65,8 @@ class UserVerification(Base):
     is_used = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    # 关系
-    user = relationship("User", back_populates="verifications")
+    # 关系 - 暂时注释掉，避免循环导入
+    # user = relationship("User", back_populates="verifications")
 
     def __repr__(self):
         return f"<UserVerification(id={self.id}, type={self.verification_type})>"

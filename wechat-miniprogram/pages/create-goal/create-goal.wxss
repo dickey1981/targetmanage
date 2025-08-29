@@ -1,0 +1,371 @@
+/* pages/create-goal/create-goal.wxss */
+.container {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+  padding-bottom: 40rpx; /* 减少底部padding，因为移除了底部按钮 */
+}
+
+/* 顶部导航 */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 30rpx;
+  background-color: #ffffff;
+  border-bottom: 1rpx solid #e9ecef;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.back-btn {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: #f8f9fa;
+}
+
+.back-icon {
+  font-size: 32rpx;
+  color: #495057;
+}
+
+.title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #212529;
+}
+
+.save-btn {
+  background-color: #20c997;
+  color: #ffffff;
+  border: none;
+  padding: 16rpx 32rpx;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+}
+
+/* 语音识别结果 */
+.voice-result-section {
+  margin: 20rpx 30rpx;
+  background-color: #ffffff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.result-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #212529;
+}
+
+.result-edit {
+  color: #20c997;
+  font-size: 28rpx;
+  cursor: pointer;
+}
+
+.result-content {
+  background-color: #f8f9fa;
+  padding: 20rpx;
+  border-radius: 8rpx;
+}
+
+.result-text {
+  font-size: 28rpx;
+  color: #495057;
+  line-height: 1.6;
+}
+
+/* 新增：语音识别结果编辑模式样式 */
+.result-textarea {
+  width: calc(100% - 40rpx); /* 减去左右padding，避免伸出外框 */
+  min-height: 72rpx; /* 减少到原来的60%：120rpx * 0.6 = 72rpx */
+  border: 2rpx solid #20c997;
+  border-radius: 8rpx;
+  padding: 20rpx;
+  font-size: 28rpx;
+  background-color: #ffffff;
+  color: #495057;
+  line-height: 1.6;
+  box-sizing: border-box; /* 确保padding不会增加总宽度 */
+}
+
+.result-textarea:focus {
+  border-color: #20c997;
+  outline: none;
+}
+
+/* 表单区域 */
+.goal-form {
+  margin: 20rpx 30rpx;
+}
+
+.form-section {
+  background-color: #ffffff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #212529;
+  margin-bottom: 20rpx;
+  display: block;
+}
+
+/* 标题输入 */
+.title-input {
+  width: calc(100% - 40rpx); /* 减去左右padding，避免伸出外框 */
+  height: 80rpx;
+  border: 2rpx solid #e9ecef;
+  border-radius: 8rpx;
+  padding: 0 20rpx;
+  font-size: 28rpx;
+  background-color: #ffffff;
+  box-sizing: border-box; /* 确保padding不会增加总宽度 */
+}
+
+.title-input:focus {
+  border-color: #20c997;
+}
+
+/* 分类选择 - 改为下拉框样式 */
+.category-picker {
+  width: 100%;
+}
+
+.picker-display {
+  height: 80rpx;
+  border: 2rpx solid #e9ecef;
+  border-radius: 8rpx;
+  padding: 0 20rpx;
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  box-sizing: border-box; /* 确保padding不会增加总宽度 */
+}
+
+.picker-display:active {
+  border-color: #20c997;
+}
+
+.picker-text {
+  font-size: 28rpx;
+  color: #495057;
+}
+
+.picker-arrow {
+  font-size: 24rpx;
+  color: #6c757d;
+}
+
+/* 描述输入 */
+.description-input {
+  width: calc(100% - 40rpx); /* 减去左右padding，避免伸出外框 */
+  min-height: 72rpx; /* 减少到原来的60%：120rpx * 0.6 = 72rpx */
+  border: 2rpx solid #e9ecef;
+  border-radius: 8rpx;
+  padding: 20rpx;
+  font-size: 28rpx;
+  background-color: #ffffff;
+  resize: none;
+  box-sizing: border-box; /* 确保padding不会增加总宽度 */
+}
+
+.description-input:focus {
+  border-color: #20c997;
+}
+
+/* 时间选择 */
+.time-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20rpx;
+}
+
+.time-input {
+  display: flex;
+  flex-direction: column;
+}
+
+.time-label {
+  font-size: 26rpx;
+  color: #6c757d;
+  margin-bottom: 12rpx;
+}
+
+.picker-text {
+  height: 80rpx;
+  border: 2rpx solid #e9ecef;
+  border-radius: 8rpx;
+  padding: 0 20rpx;
+  font-size: 28rpx;
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  color: #495057;
+  box-sizing: border-box; /* 确保padding不会增加总宽度 */
+}
+
+/* 量化指标 */
+.quantification-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20rpx;
+}
+
+.quant-input {
+  display: flex;
+  flex-direction: column;
+}
+
+.quant-label {
+  font-size: 26rpx;
+  color: #6c757d;
+  margin-bottom: 12rpx;
+}
+
+.value-input, .unit-input {
+  height: 80rpx;
+  border: 2rpx solid #e9ecef;
+  border-radius: 8rpx;
+  padding: 0 20rpx;
+  font-size: 28rpx;
+  background-color: #ffffff;
+  text-align: center;
+  box-sizing: border-box; /* 确保padding不会增加总宽度 */
+}
+
+.value-input:focus, .unit-input:focus {
+  border-color: #20c997;
+}
+
+/* 优先级选择 */
+.priority-options {
+  display: flex;
+  gap: 20rpx;
+}
+
+.priority-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20rpx;
+  border: 2rpx solid #e9ecef;
+  border-radius: 8rpx;
+  background-color: #ffffff;
+  transition: all 0.3s ease;
+}
+
+.priority-item.selected {
+  border-color: #20c997;
+  background-color: #e8f5f0;
+}
+
+.priority-icon {
+  font-size: 32rpx;
+  margin-bottom: 8rpx;
+}
+
+.priority-name {
+  font-size: 26rpx;
+  color: #495057;
+}
+
+/* 提醒设置 */
+.reminder-options {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.reminder-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #e9ecef;
+}
+
+.reminder-item:last-child {
+  border-bottom: none;
+}
+
+.reminder-label {
+  font-size: 28rpx;
+  color: #495057;
+}
+
+/* 验证提示 */
+.validation-section {
+  background-color: #fff3cd;
+  border: 1rpx solid #ffeaa7;
+  border-radius: 8rpx;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.validation-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #856404;
+  margin-bottom: 16rpx;
+  display: block;
+}
+
+.error-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.error-item {
+  font-size: 26rpx;
+  color: #856404;
+}
+
+/* 智能建议 */
+.suggestion-section {
+  background-color: #d1ecf1;
+  border: 1rpx solid #bee5eb;
+  border-radius: 8rpx;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.suggestion-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #0c5460;
+  margin-bottom: 16rpx;
+  display: block;
+}
+
+.suggestion-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.suggestion-item {
+  font-size: 26rpx;
+  color: #0c5460;
+}

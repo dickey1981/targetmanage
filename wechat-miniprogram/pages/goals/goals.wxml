@@ -1,4 +1,98 @@
-<!--pages/goals/goals.wxml-->
-<view class="goals-container">
-  <text>目标管理页面 - 开发中</text>
+<!-- 目标管理页面 -->
+<view class="container">
+  <!-- 顶部导航 -->
+  <view class="header">
+    <text class="page-title">目标管理</text>
+    <view class="header-actions">
+      <view class="create-btn" bindtap="showCreateModal">
+        <text class="create-icon">➕</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 目标统计概览 -->
+  <view class="goals-overview">
+    <view class="overview-item">
+      <text class="overview-number">{{totalGoals}}</text>
+      <text class="overview-label">总目标</text>
+    </view>
+    <view class="overview-item">
+      <text class="overview-number">{{activeGoals}}</text>
+      <text class="overview-label">进行中</text>
+    </view>
+    <view class="overview-item">
+      <text class="overview-number">{{completedGoals}}</text>
+      <text class="overview-label">已完成</text>
+    </view>
+    <view class="overview-item">
+      <text class="overview-number">{{completionRate}}%</text>
+      <text class="overview-label">完成率</text>
+    </view>
+  </view>
+
+  <!-- 目标列表 -->
+  <view class="goals-list">
+    <view class="list-header">
+      <text class="list-title">我的目标</text>
+    </view>
+
+    <!-- 目标卡片列表 -->
+    <view class="goal-cards" wx:if="{{goals.length > 0}}">
+      <view class="goal-card" wx:for="{{goals}}" wx:key="id" bindtap="onGoalTap" data-id="{{item.id}}">
+        <view class="goal-header">
+          <text class="goal-category">{{item.categoryText}}</text>
+          <text class="goal-status">{{item.statusText}}</text>
+        </view>
+        <text class="goal-title">{{item.title}}</text>
+        <view class="goal-progress">
+          <view class="progress-info">
+            <text class="progress-text">进度</text>
+            <text class="progress-detail">{{item.progress}}%</text>
+          </view>
+          <view class="progress-bar">
+            <view class="progress-fill" style="width: {{item.progressPercent}}%"></view>
+          </view>
+        </view>
+        <view class="goal-footer">
+          <text class="deadline">截止: {{item.endDateText}}</text>
+          <text class="days-left">剩余{{item.daysLeft}}天</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:else>
+      <text class="empty-icon">🎯</text>
+      <text class="empty-title">还没有目标</text>
+      <text class="empty-subtitle">创建你的第一个目标，开始实现梦想</text>
+      <button class="create-first-btn" bindtap="showCreateModal">创建目标</button>
+    </view>
+  </view>
+</view>
+
+<!-- 创建目标弹窗 -->
+<view class="create-modal" wx:if="{{showCreateModal}}">
+  <view class="modal-content">
+    <view class="modal-header">
+      <text class="modal-title">语音创建目标</text>
+      <view class="close-btn" bindtap="hideCreateModal">✕</view>
+    </view>
+
+    <!-- 语音创建区域 -->
+    <view class="voice-section">
+      <view class="{{voiceButtonClass}}"
+            bindtouchstart="startVoiceRecord"
+            bindtouchend="stopVoiceRecord">
+        <view class="voice-icon">🎤</view>
+        <text class="main-text">{{recordingText}}</text>
+        <text class="sub-text">{{voiceHint}}</text>
+      </view>
+    </view>
+
+    <!-- 语音提示 -->
+    <view class="voice-tip">
+      <text class="tip-text">按住说话，松开结束录音</text>
+      <text class="tip-text">录音完成后将自动跳转到创建页面</text>
+    </view>
+  </view>
 </view>

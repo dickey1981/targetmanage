@@ -42,10 +42,10 @@ class Progress(BaseModel):
     goal_id = Column(Integer, ForeignKey("goals.id"), nullable=True, comment="目标ID")
     task_id = Column(Integer, ForeignKey("tasks.id"), nullable=True, comment="任务ID")
     
-    # 关联关系
-    user = relationship("User", back_populates="progresses")
-    goal = relationship("Goal", back_populates="progresses")
-    task = relationship("Task", back_populates="progresses")
+    # 关联关系 - 暂时注释掉，避免循环导入
+    # user = relationship("User", back_populates="progresses")
+    # goal = relationship("Goal", back_populates="progresses")
+    # task = relationship("Task", back_populates="progresses")
     
     def __repr__(self):
         return f"<Progress(id={self.id}, value={self.progress_value}, type='{self.progress_type}')>"

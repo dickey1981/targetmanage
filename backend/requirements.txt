@@ -1,37 +1,9 @@
-# FastAPI框架
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
-
-# 数据库相关
-sqlalchemy==2.0.23
-alembic==1.12.1
+sqlalchemy==1.4.53
 pymysql==1.1.0
-cryptography==41.0.7
-
-# Redis缓存
-redis==5.0.1
-
-# 配置管理
-pydantic==2.5.0
-pydantic-settings==2.1.0
-
-# 认证和安全
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 python-multipart==0.0.6
-
-# 腾讯云服务
-tencentcloud-sdk-python==3.0.1035
-cos-python-sdk-v5==1.9.27
-
-# 音频处理
-pydub==0.25.1
-
-# HTTP客户端
-requests==2.31.0
-
-# 异步支持
-asyncio-mqtt==0.16.1
-
-# 开发工具
 python-dotenv==1.0.0
+tencentcloud-sdk-python==3.0.1035

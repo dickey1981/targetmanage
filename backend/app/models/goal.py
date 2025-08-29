@@ -78,13 +78,13 @@ class Goal(BaseModel):
     total_tasks = Column(Integer, default=0, comment="总任务数")
     completed_tasks = Column(Integer, default=0, comment="已完成任务数")
     
-    # 关联关系
-    user = relationship("User", back_populates="goals")
-    tasks = relationship("Task", back_populates="goal", cascade="all, delete-orphan")
-    progresses = relationship("Progress", back_populates="goal", cascade="all, delete-orphan")
+    # 关联关系 - 暂时简化，只保留必要的
+    # user = relationship("User", back_populates="goals", lazy="select")
     
-    # 自关联（父子目标）
-    parent_goal = relationship("Goal", remote_side="Goal.id", backref="sub_goals")
+    # 暂时注释掉其他关系，避免循环导入
+    # tasks = relationship("Task", back_populates="goal", cascade="all, delete-orphan", lazy="select")
+    # progresses = relationship("Progress", back_populates="goal", cascade="all, delete-orphan", lazy="select")
+    # parent_goal = relationship("Goal", remote_side="Goal.id", backref="sub_goals", lazy="select")
     
     def __repr__(self):
         return f"<Goal(id={self.id}, title='{self.title}', status='{self.status.value}')>"

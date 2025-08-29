@@ -1,134 +1,115 @@
-<!--pages/index/index.wxml-->
-<view class="index-container">
-  <!-- 顶部欢迎区域 -->
-  <view class="welcome-section">
-    <view class="welcome-text">
-      <text class="greeting">{{greeting}}</text>
-      <text class="user-name">{{userInfo.nickName || '朋友'}}</text>
-    </view>
-    <view class="date-info">
-      <text class="current-date">{{currentDate}}</text>
-      <text class="week-day">{{weekDay}}</text>
-    </view>
-  </view>
-
-  <!-- 语音交互区域 -->
-  <view class="voice-section">
-    <view class="voice-button-container">
-      <button 
-        class="voice-button {{isRecording ? 'recording' : ''}}"
-        bindtouchstart="onVoiceStart"
-        bindtouchend="onVoiceEnd"
-        bindtouchcancel="onVoiceCancel"
-      >
-        <view class="voice-icon">
-          <image 
-            class="mic-icon" 
-            src="/images/{{isRecording ? 'mic-recording.png' : 'mic.png'}}"
-            mode="aspectFit"
-          ></image>
-        </view>
-        <text class="voice-text">{{isRecording ? '正在录音...' : '按住说话'}}</text>
-        <text class="voice-hint">说出您的目标或进度</text>
-      </button>
-    </view>
-    
-    <!-- 录音状态指示器 -->
-    <view class="recording-indicator" wx:if="{{isRecording}}">
-      <view class="wave-container">
-        <view class="wave-bar" wx:for="{{waveBars}}" wx:key="index" style="height: {{item}}rpx;"></view>
+<!-- 首页 - 智能交互中心 -->
+<view class="container">
+  <!-- 顶部区域 (20%屏幕高度) -->
+  <view class="header-section">
+    <!-- 用户问候和今日概览 -->
+    <view class="user-greeting">
+      <view class="greeting-text">
+        <text class="greeting">{{greetingText}}</text>
+        <text class="username">{{userInfo.nickname || '用户'}}</text>
       </view>
-      <text class="recording-time">{{recordingTime}}s</text>
+      <view class="today-overview">
+        <text class="overview-item">今日目标: {{todayGoals.length}}个</text>
+        <text class="overview-item">已完成: {{completedGoalsCount}}个</text>
+        <text class="overview-item">待完成: {{pendingGoalsCount}}个</text>
+      </view>
     </view>
   </view>
 
-  <!-- 今日目标概览 -->
-  <view class="goals-overview">
+  <!-- 核心交互区 - 语音按钮 (50%屏幕高度) -->
+  <view class="voice-interaction-section">
+    <view class="voice-button-container">
+      <view class="voice-button {{isRecording ? 'recording' : ''}}" 
+            bindtouchstart="startVoiceRecord" 
+            bindtouchend="stopVoiceRecord">
+        <view class="voice-icon">
+          <text class="icon">🎤</text>
+        </view>
+        <view class="voice-text">
+          <text class="main-text">{{recordingText}}</text>
+          <text class="sub-text">{{voiceHint}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 快捷操作区 (15%屏幕高度) -->
+  <view class="quick-actions-section">
+    <view class="quick-actions">
+      <view class="action-item" bindtap="takePhoto">
+        <view class="action-icon photo-icon">📷</view>
+        <text class="action-text">拍照记录</text>
+      </view>
+      <view class="action-item" bindtap="createGoal">
+        <view class="action-icon create-icon">➕</view>
+        <text class="action-text">创建目标</text>
+      </view>
+      <view class="action-item" bindtap="syncData">
+        <view class="action-icon sync-icon">🔄</view>
+        <text class="action-text">数据同步</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 今日目标区 (15%屏幕高度) -->
+  <view class="today-goals-section">
     <view class="section-header">
       <text class="section-title">今日目标</text>
-      <text class="section-subtitle">{{todayGoals.length}}个进行中</text>
+      <text class="section-more" bindtap="viewAllGoals">查看全部</text>
     </view>
     
-    <view class="goals-list" wx:if="{{todayGoals.length > 0}}">
-      <view 
-        class="goal-item" 
-        wx:for="{{todayGoals}}" 
-        wx:key="id"
-        bindtap="onGoalTap"
-        data-goal="{{item}}"
-      >
-        <view class="goal-info">
-          <text class="goal-title">{{item.title}}</text>
-          <text class="goal-category">{{item.category}}</text>
-        </view>
-        <view class="goal-progress">
-          <view class="progress-bar">
-            <view class="progress-fill" style="width: {{item.progress}}%"></view>
+    <view class="goals-container">
+      <block wx:if="{{todayGoals.length > 0}}">
+        <view class="goal-card" 
+              wx:for="{{todayGoals}}" 
+              wx:key="id"
+              bindtap="goToGoalDetail"
+              data-goal-id="{{item.id}}">
+          <view class="goal-header">
+            <view class="goal-category {{item.category === '工作' ? 'work' : item.category === '学习' ? 'study' : item.category === '健康' ? 'health' : item.category === '生活' ? 'life' : ''}}">{{item.category}}</view>
+            <view class="goal-status {{item.completed ? 'completed' : 'in-progress'}}">
+              {{item.completed ? '已完成' : '进行中'}}
+            </view>
           </view>
-          <text class="progress-text">{{item.progress}}%</text>
+          <view class="goal-title">{{item.title}}</view>
+          <view class="goal-progress">
+            <view class="progress-bar">
+              <view class="progress-fill" style="width: {{item.progress}}%"></view>
+            </view>
+            <text class="progress-text">{{item.progress}}%</text>
+          </view>
         </view>
-        <view class="goal-status">
-          <text class="status-text {{item.status === 'urgent' ? 'urgent' : ''}}">
-            {{item.statusText}}
-          </text>
-        </view>
-      </view>
-    </view>
-    
-    <view class="empty-goals" wx:else>
-      <image class="empty-icon" src="/images/empty-goals.png" mode="aspectFit"></image>
-      <text class="empty-text">今天还没有目标</text>
-      <button class="create-goal-btn" bindtap="onCreateGoal">创建第一个目标</button>
-    </view>
-  </view>
-
-  <!-- 快速操作区域 -->
-  <view class="quick-actions">
-    <view class="action-item" bindtap="onQuickPhoto">
-      <image class="action-icon" src="/images/camera-icon.png" mode="aspectFit"></image>
-      <text class="action-text">拍照记录</text>
-    </view>
-    <view class="action-item" bindtap="onQuickVoice">
-      <image class="action-icon" src="/images/voice-icon.png" mode="aspectFit"></image>
-      <text class="action-text">语音记录</text>
-    </view>
-    <view class="action-item" bindtap="onQuickView">
-      <image class="action-icon" src="/images/timeline-icon.png" mode="aspectFit"></image>
-      <text class="action-text">查看进度</text>
-    </view>
-  </view>
-
-  <!-- 最近记录 -->
-  <view class="recent-records" wx:if="{{recentRecords.length > 0}}">
-    <view class="section-header">
-      <text class="section-title">最近记录</text>
-      <text class="section-subtitle">查看全部</text>
-    </view>
-    
-    <view class="records-list">
-      <view 
-        class="record-item" 
-        wx:for="{{recentRecords}}" 
-        wx:key="id"
-        bindtap="onRecordTap"
-        data-record="{{item}}"
-      >
-        <view class="record-icon">
-          <image class="icon" src="/images/{{item.type}}-icon.png" mode="aspectFit"></image>
-        </view>
-        <view class="record-content">
-          <text class="record-text">{{item.content}}</text>
-          <text class="record-time">{{item.time}}</text>
-        </view>
-        <view class="record-arrow">
-          <image class="arrow" src="/images/arrow-right.png" mode="aspectFit"></image>
-        </view>
+      </block>
+      
+      <view wx:else class="empty-goals">
+        <text class="empty-text">暂无今日目标</text>
+        <text class="empty-hint">点击下方按钮创建您的第一个目标</text>
       </view>
     </view>
   </view>
 
-  <!-- 底部导航提示 -->
-  <view class="bottom-tips">
-    <text class="tip-text">左右滑动查看更多功能</text>
+  <!-- 登录弹窗 -->
+  <view class="login-modal" wx:if="{{showLoginModal}}">
+    <view class="modal-content">
+      <view class="modal-header">
+        <text class="modal-title">快速登录</text>
+        <text class="modal-subtitle">授权后即可使用所有功能</text>
+      </view>
+      
+      <view class="auth-section">
+        <button class="auth-btn wechat-auth" 
+                open-type="getUserInfo" 
+                bindgetuserinfo="onGetUserInfo">
+          <text class="btn-text">微信授权登录</text>
+        </button>
+      </view>
+      
+      <view class="legal-text">
+        <text>授权即表示同意</text>
+        <text class="link">用户协议</text>
+        <text>和</text>
+        <text class="link">隐私政策</text>
+      </view>
+    </view>
   </view>
 </view>

@@ -3,331 +3,477 @@ const app = getApp()
 
 Page({
   data: {
-    userInfo: {},
-    greeting: '早上好',
-    currentDate: '',
-    weekDay: '',
-    isRecording: false,
-    recordingTime: 0,
-    waveBars: [20, 40, 60, 40, 20, 30, 50, 30],
+    isLoggedIn: false,
+    userInfo: null,
+    showLoginModal: false,
+    isLoggingIn: false,
     todayGoals: [],
-    recentRecords: [],
-    recordingTimer: null
+    completedGoalsCount: 0,
+    pendingGoalsCount: 0,
+    // 语音交互相关
+    isRecording: false,
+    recordingText: '按住说话',
+    voiceHint: '松开结束',
+    // 问候语
+    greetingText: '早上好',
+    // 快捷操作
+    quickActions: [
+      { id: 'photo', name: '拍照记录', icon: '📷', color: '#28a745' },
+      { id: 'create', name: '创建目标', icon: '➕', color: '#667eea' },
+      { id: 'sync', name: '数据同步', icon: '🔄', color: '#ffc107' }
+    ]
   },
 
   onLoad() {
-    this.loadUserInfo()
-    this.updateDateTime()
+    this.checkLoginStatus()
     this.loadTodayGoals()
-    this.loadRecentRecords()
+    this.updateGreeting()
     
-    // 每分钟更新一次时间
-    this.timeUpdateInterval = setInterval(() => {
-      this.updateDateTime()
-    }, 60000)
+    // 调试信息
+    console.log('页面加载 - 环境配置信息:')
+    console.log('全局baseUrl:', app.globalData.baseUrl)
+    console.log('当前环境:', wx.getSystemInfoSync().platform)
   },
 
   onShow() {
-    // 每次显示页面时刷新数据
-    this.loadUserInfo()
-    this.loadTodayGoals()
-    this.loadRecentRecords()
-  },
-
-  onUnload() {
-    // 清理定时器
-    if (this.timeUpdateInterval) {
-      clearInterval(this.timeUpdateInterval)
+    this.checkLoginStatus()
+    if (this.data.isLoggedIn) {
+      this.loadTodayGoals()
     }
-    if (this.data.recordingTimer) {
-      clearInterval(this.data.recordingTimer)
-    }
-  },
-
-  // 加载用户信息
-  loadUserInfo() {
-    const userInfo = app.getUserInfo()
-    if (userInfo) {
-      this.setData({ userInfo })
-      this.updateGreeting()
-    }
-  },
-
-  // 更新日期时间
-  updateDateTime() {
-    const now = new Date()
-    const year = now.getFullYear()
-    const month = now.getMonth() + 1
-    const date = now.getDate()
-    const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
-    const weekDay = weekDays[now.getDay()]
-    
-    this.setData({
-      currentDate: `${year}年${month}月${date}日`,
-      weekDay: weekDay
-    })
+    this.updateGreeting()
   },
 
   // 更新问候语
   updateGreeting() {
     const hour = new Date().getHours()
-    let greeting = '早上好'
+    let greeting = ''
     
     if (hour >= 5 && hour < 12) {
       greeting = '早上好'
     } else if (hour >= 12 && hour < 18) {
       greeting = '下午好'
-    } else if (hour >= 18 && hour < 22) {
-      greeting = '晚上好'
     } else {
-      greeting = '夜深了'
+      greeting = '晚上好'
     }
     
-    this.setData({ greeting })
-  },
-
-  // 加载今日目标
-  loadTodayGoals() {
-    if (!app.checkIsLoggedIn()) return
-
-    // 这里应该调用API获取今日目标
-    // 目前使用模拟数据
-    const mockGoals = [
-      {
-        id: 1,
-        title: '减重目标',
-        category: '健康',
-        progress: 65,
-        status: 'normal',
-        statusText: '进行中'
-      },
-      {
-        id: 2,
-        title: '学习Python',
-        category: '学习',
-        progress: 30,
-        status: 'urgent',
-        statusText: '需加速'
-      }
-    ]
-    
-    this.setData({ todayGoals: mockGoals })
-  },
-
-  // 加载最近记录
-  loadRecentRecords() {
-    if (!app.checkIsLoggedIn()) return
-
-    // 这里应该调用API获取最近记录
-    // 目前使用模拟数据
-    const mockRecords = [
-      {
-        id: 1,
-        type: 'voice',
-        content: '今天跑了5公里，感觉很不错',
-        time: '2小时前'
-      },
-      {
-        id: 2,
-        type: 'photo',
-        content: '体重秤显示70.5kg',
-        time: '昨天'
-      }
-    ]
-    
-    this.setData({ recentRecords: mockRecords })
-  },
-
-  // 开始录音
-  onVoiceStart() {
-    this.setData({ 
-      isRecording: true,
-      recordingTime: 0
+    this.setData({
+      greetingText: greeting
     })
+  },
+
+  // 检查登录状态
+  checkLoginStatus() {
+    const token = wx.getStorageSync('token')
+    const userInfo = wx.getStorageSync('userInfo')
     
-    // 开始录音计时
-    const timer = setInterval(() => {
+    if (token && userInfo) {
       this.setData({
-        recordingTime: this.data.recordingTime + 1
+        isLoggedIn: true,
+        userInfo: userInfo
       })
-    }, 1000)
-    
-    this.setData({ recordingTimer: timer })
-    
-    // 这里应该调用微信录音API
-    console.log('开始录音')
-  },
-
-  // 结束录音
-  onVoiceEnd() {
-    this.setData({ isRecording: false })
-    
-    // 停止计时
-    if (this.data.recordingTimer) {
-      clearInterval(this.data.recordingTimer)
-      this.setData({ recordingTimer: null })
+      // 验证token有效性
+      this.validateToken()
+    } else {
+      this.setData({
+        isLoggedIn: false,
+        userInfo: null
+      })
     }
-    
-    // 这里应该停止录音并处理录音结果
-    console.log('录音结束，时长:', this.data.recordingTime, '秒')
-    
-    // 模拟语音识别结果
-    this.processVoiceInput('今天完成了减重目标的一半')
   },
 
-  // 取消录音
-  onVoiceCancel() {
-    this.setData({ isRecording: false })
-    
-    // 停止计时
-    if (this.data.recordingTimer) {
-      clearInterval(this.data.recordingTimer)
-      this.setData({ recordingTimer: null })
-    }
-    
-    console.log('录音已取消')
-  },
-
-  // 处理语音输入
-  processVoiceInput(text) {
-    wx.showModal({
-      title: '语音识别结果',
-      content: `识别内容：${text}\n\n请确认是否正确？`,
-      confirmText: '正确',
-      cancelText: '重新录音',
+  // 验证token有效性
+  validateToken() {
+    wx.request({
+      url: `${app.globalData.baseUrl}/api/auth/validate`,
+      method: 'GET',
+      header: {
+        'Authorization': `Bearer ${wx.getStorageSync('token')}`
+      },
       success: (res) => {
-        if (res.confirm) {
-          // 处理正确的语音输入
-          this.handleVoiceCommand(text)
+        if (res.statusCode !== 200) {
+          this.logout()
+        }
+      },
+      fail: () => {
+        this.logout()
+      }
+    })
+  },
+
+  // 显示登录浮窗
+  showLoginModal() {
+    this.setData({
+      showLoginModal: true
+    })
+  },
+
+  // 隐藏登录浮窗
+  hideLoginModal() {
+    this.setData({
+      showLoginModal: false
+    })
+  },
+
+  // 获取微信用户信息
+  onGetUserInfo(e) {
+    if (e.detail.userInfo) {
+      this.setData({
+        userInfo: e.detail.userInfo
+      })
+      
+      // 先获取微信登录code，然后调用登录接口
+      this.loginWithWeChat(e.detail.userInfo)
+    } else {
+      wx.showToast({
+        title: '需要授权才能使用',
+        icon: 'none'
+      })
+    }
+  },
+
+  // 使用微信信息登录/注册
+  loginWithWeChat(userInfo) {
+    this.setData({
+      isLoggingIn: true
+    })
+
+    // 先获取微信登录code
+    wx.login({
+      success: (loginRes) => {
+        if (loginRes.code) {
+          // 获取到code后，发送给后端
+          this.sendLoginRequest(loginRes.code, userInfo)
         } else {
-          // 重新录音
           wx.showToast({
-            title: '请重新录音',
-            icon: 'none',
-            duration: 2000
+            title: '获取登录凭证失败',
+            icon: 'none'
+          })
+          this.setData({
+            isLoggingIn: false
           })
         }
-      }
-    })
-  },
-
-  // 处理语音命令
-  handleVoiceCommand(text) {
-    // 这里应该调用后端API处理语音命令
-    // 目前只是显示提示
-    wx.showToast({
-      title: '语音命令已处理',
-      icon: 'success',
-      duration: 2000
-    })
-    
-    // 刷新数据
-    setTimeout(() => {
-      this.loadTodayGoals()
-      this.loadRecentRecords()
-    }, 1000)
-  },
-
-  // 点击目标项
-  onGoalTap(e) {
-    const goal = e.currentTarget.dataset.goal
-    wx.navigateTo({
-      url: `/pages/goal-detail/goal-detail?id=${goal.id}`
-    })
-  },
-
-  // 创建目标
-  onCreateGoal() {
-    wx.navigateTo({
-      url: '/pages/goals/create-goal'
-    })
-  },
-
-  // 快速拍照
-  onQuickPhoto() {
-    wx.chooseImage({
-      count: 1,
-      sizeType: ['compressed'],
-      sourceType: ['camera'],
-      success: (res) => {
-        const tempFilePath = res.tempFilePaths[0]
-        this.processPhoto(tempFilePath)
       },
       fail: (err) => {
-        console.error('拍照失败:', err)
+        console.error('wx.login失败:', err)
         wx.showToast({
-          title: '拍照失败',
-          icon: 'none',
-          duration: 2000
+          title: '微信登录失败',
+          icon: 'none'
+        })
+        this.setData({
+          isLoggingIn: false
         })
       }
     })
   },
 
-  // 快速语音
-  onQuickVoice() {
-    // 直接触发语音录音
-    this.onVoiceStart()
-  },
+  // 发送登录请求到后端
+  sendLoginRequest(code, userInfo) {
+    // 调试信息
+    const apiUrl = `${app.globalData.baseUrl}/api/auth/wechat-login`
+    console.log('API地址:', apiUrl)
+    console.log('全局baseUrl:', app.globalData.baseUrl)
+    console.log('微信code:', code)
+    console.log('用户信息:', userInfo)
 
-  // 快速查看
-  onQuickView() {
-    wx.navigateTo({
-      url: '/pages/timeline/timeline'
+    wx.request({
+      url: apiUrl,
+      method: 'POST',
+      data: {
+        code: code,
+        userInfo: userInfo
+      },
+      success: (res) => {
+        console.log('登录响应:', res)
+        console.log('响应数据:', res.data)
+        
+        if (res.statusCode === 200 && res.data.success) {
+          // 后端返回的数据结构：{ success: true, message: "登录成功", data: {...} }
+          const responseData = res.data.data || {}
+          const { token, user, isNewUser } = responseData
+          
+          console.log('提取的数据:', { token, user, isNewUser })
+          
+          // 验证必要字段
+          if (!token || !user) {
+            console.error('登录响应数据不完整:', responseData)
+            wx.showToast({
+              title: '登录数据不完整',
+              icon: 'none'
+            })
+            return
+          }
+          
+          // 保存登录信息
+          wx.setStorageSync('token', token)
+          wx.setStorageSync('userInfo', user)
+          
+          // 更新全局状态
+          app.globalData.token = token
+          app.globalData.userInfo = user
+          app.globalData.isLoggedIn = true
+          
+          this.setData({
+            isLoggedIn: true,
+            userInfo: user,
+            showLoginModal: false,
+            isLoggingIn: false
+          })
+
+          // 显示欢迎信息
+          if (isNewUser) {
+            wx.showToast({
+              title: '欢迎新用户！',
+              icon: 'success'
+            })
+          } else {
+            wx.showToast({
+              title: '登录成功！',
+              icon: 'success'
+            })
+          }
+
+          // 加载用户数据
+          this.loadTodayGoals()
+        } else {
+          console.error('登录失败:', res.data)
+          wx.showToast({
+            title: res.data.message || '登录失败',
+            icon: 'none'
+          })
+        }
+      },
+      fail: (err) => {
+        console.error('登录失败:', err)
+        wx.showToast({
+          title: '网络错误，请重试',
+          icon: 'none'
+        })
+      },
+      complete: () => {
+        this.setData({
+          isLoggingIn: false
+        })
+      }
     })
   },
 
-  // 处理拍照结果
-  processPhoto(filePath) {
-    // 这里应该调用后端OCR API处理图片
-    // 目前只是显示提示
-    wx.showToast({
-      title: '图片已上传，正在识别...',
-      icon: 'loading',
-      duration: 2000
+  // 登出
+  logout() {
+    wx.removeStorageSync('token')
+    wx.removeStorageSync('userInfo')
+    
+    app.globalData.token = null
+    app.globalData.userInfo = null
+    app.globalData.isLoggedIn = false
+    
+    this.setData({
+      isLoggedIn: false,
+      userInfo: null
+    })
+  },
+
+  // 加载今日目标
+  loadTodayGoals() {
+    if (!this.data.isLoggedIn) return
+
+    const token = wx.getStorageSync('token')
+    console.log('🔍 加载今日目标 - Token:', token)
+    console.log('🔍 请求URL:', `${app.globalData.baseUrl}/api/goals/today`)
+
+    wx.request({
+      url: `${app.globalData.baseUrl}/api/goals/today`,
+      method: 'GET',
+      header: {
+        'Authorization': `Bearer ${token}`
+      },
+      success: (res) => {
+        console.log('✅ 今日目标响应:', res)
+        if (res.statusCode === 200 && res.data.success) {
+          const goals = res.data.data || []
+          const completedCount = goals.filter(g => g.completed).length
+          const pendingCount = goals.filter(g => !g.completed).length
+          
+          this.setData({
+            todayGoals: goals,
+            completedGoalsCount: completedCount,
+            pendingGoalsCount: pendingCount
+          })
+          
+          console.log('✅ 今日目标加载成功:', goals.length, '个')
+        } else {
+          console.error('❌ 今日目标响应异常:', res.data)
+        }
+      },
+      fail: (err) => {
+        console.error('❌ 加载今日目标失败:', err)
+      }
+    })
+  },
+
+  // 语音交互相关方法
+  startVoiceRecord() {
+    if (!this.data.isLoggedIn) {
+      this.showLoginModal()
+      return
+    }
+    
+    this.setData({
+      isRecording: true,
+      recordingText: '正在录音...',
+      voiceHint: '松开结束录音'
     })
     
-    // 模拟识别过程
+    // TODO: 调用微信录音API
+    wx.showToast({
+      title: '开始录音',
+      icon: 'none'
+    })
+    
+    // 模拟录音状态
+    this.recordingTimer = setInterval(() => {
+      this.setData({
+        voiceHint: '正在录音...'
+      })
+    }, 1000)
+  },
+
+  stopVoiceRecord() {
+    if (!this.data.isRecording) return
+    
+    clearInterval(this.recordingTimer)
+    
+    this.setData({
+      isRecording: false,
+      recordingText: '录音完成，正在识别...',
+      voiceHint: '请稍候'
+    })
+    
+    // TODO: 调用语音识别API
+    wx.showToast({
+      title: '录音完成，正在识别...',
+      icon: 'none'
+    })
+    
+    // 模拟语音识别过程
     setTimeout(() => {
+      this.setData({
+        recordingText: '按住说话',
+        voiceHint: '松开结束'
+      })
+      
+      // 显示识别结果示例
       wx.showModal({
-        title: '识别结果',
-        content: '检测到数字：70.5\n\n是否更新减重目标进度？',
-        confirmText: '更新',
-        cancelText: '取消',
+        title: '语音识别结果',
+        content: '识别到："今天跑了5公里，用时30分钟"\n是否更新运动目标？',
+        confirmText: '确认更新',
+        cancelText: '重新录音',
         success: (res) => {
           if (res.confirm) {
-            // 更新目标进度
+            // TODO: 调用后端API更新目标进度
             wx.showToast({
-              title: '进度已更新',
-              icon: 'success',
-              duration: 1500
+              title: '进度更新成功！',
+              icon: 'success'
             })
-            
-            // 刷新数据
-            setTimeout(() => {
-              this.loadTodayGoals()
-              this.loadRecentRecords()
-            }, 1000)
           }
         }
       })
     }, 2000)
   },
 
-  // 点击记录项
-  onRecordTap(e) {
-    const record = e.currentTarget.dataset.record
-    wx.navigateTo({
-      url: `/pages/process-record/process-record?id=${record.id}`
+  // 快捷操作
+  onQuickAction(e) {
+    const { id } = e.currentTarget.dataset
+    
+    switch (id) {
+      case 'photo':
+        this.takePhoto()
+        break
+      case 'create':
+        this.createGoal()
+        break
+      case 'sync':
+        this.syncData()
+        break
+    }
+  },
+
+  // 拍照记录
+  takePhoto() {
+    if (!this.data.isLoggedIn) {
+      this.showLoginModal()
+      return
+    }
+
+    wx.chooseImage({
+      count: 1,
+      sizeType: ['compressed'],
+      sourceType: ['camera'],
+      success: (res) => {
+        // TODO: 调用OCR API识别图片
+        wx.showToast({
+          title: '正在识别图片...',
+          icon: 'none'
+        })
+      }
     })
   },
 
-  // 页面分享
-  onShareAppMessage() {
-    return {
-      title: '智能目标管理 - 让目标管理变得简单智能',
-      path: '/pages/index/index',
-      imageUrl: '/images/share-cover.png'
+  // 创建目标
+  createGoal() {
+    // 检查用户是否已登录
+    if (!app.globalData.userInfo) {
+      wx.showToast({
+        title: '请先登录',
+        icon: 'none'
+      })
+      return
     }
+
+    console.log('用户已登录，跳转到目标管理页面')
+    // 设置全局标志，表示要显示语音创建弹窗
+    app.globalData.showCreateGoalModal = true
+    
+    // 跳转到目标管理页面（tab页面）
+    wx.switchTab({
+      url: '/pages/goals/goals',
+      success: () => {
+        console.log('跳转成功')
+      },
+      fail: (err) => {
+        console.error('跳转失败:', err)
+        wx.showToast({
+          title: '页面跳转失败',
+          icon: 'none'
+        })
+      }
+    })
+  },
+
+  // 数据同步
+  syncData() {
+    if (!this.data.isLoggedIn) {
+      this.showLoginModal()
+      return
+    }
+
+    wx.showToast({
+      title: '开始同步数据...',
+      icon: 'none'
+    })
+  },
+
+  // 查看全部目标
+  viewAllGoals() {
+    wx.switchTab({
+      url: '/pages/goals/goals'
+    })
+  },
+
+  // 跳转到目标详情
+  goToGoalDetail(e) {
+    const goalId = e.currentTarget.dataset.goalId
+    wx.navigateTo({
+      url: `/pages/goal-detail/goal-detail?id=${goalId}`
+    })
   }
 })

@@ -25,8 +25,13 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     
     # 数据库配置（使用同一个数据库）
-    DATABASE_URL: str = "mysql+pymysql://root:targetM123@10.0.4.11:3306/targetmanage"
-    DATABASE_TEST_URL: str = "mysql+pymysql://root:targetM123@10.0.4.11:3306/targetmanage"
+    # 生产环境：腾讯云LightDB MySQL 5.7 (外网访问)
+    DATABASE_URL: str = "mysql+pymysql://root:targetM123@sh-cynosdbmysql-grp-hocwbafo.sql.tencentcdb.com:26153/targetmanage"
+    DATABASE_TEST_URL: str = "mysql+pymysql://root:targetM123@sh-cynosdbmysql-grp-hocwbafo.sql.tencentcdb.com:26153/targetmanage"
+    
+    # 本地开发数据库配置（可选）
+    LOCAL_DATABASE_URL: str = "mysql+pymysql://root:password@localhost:3306/targetmanage"
+    USE_LOCAL_DB: bool = False  # 设置为True使用本地数据库
     
     # Redis配置
     REDIS_URL: str = "redis://localhost:6379/0"
@@ -42,8 +47,9 @@ class Settings(BaseSettings):
     ALLOWED_EXTENSIONS: List[str] = [".jpg", ".jpeg", ".png", ".gif", ".mp3", ".wav", ".m4a"]
     
     # 微信小程序配置
-    WECHAT_APP_ID: str = "your-wechat-app-id"
-    WECHAT_APP_SECRET: str = "your-wechat-app-secret"
+    # 请替换为您的实际微信小程序AppID和AppSecret
+    WECHAT_APP_ID: str = "wxe0c0f4327a75c33f"  # 例如：wx1234567890abcdef
+    WECHAT_APP_SECRET: str = "7757cc7f7b9c819cfd4db042176f1698"  # 例如：abcdef1234567890abcdef1234567890
     WECHAT_SESSION_KEY_EXPIRE: int = 7200  # 2小时
     
     # AI服务配置

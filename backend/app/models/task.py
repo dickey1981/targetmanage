@@ -66,13 +66,13 @@ class Task(BaseModel):
     # 排序字段
     order_index = Column(Integer, default=0, comment="排序索引")
     
-    # 关联关系
-    user = relationship("User", back_populates="tasks")
-    goal = relationship("Goal", back_populates="tasks")
-    progresses = relationship("Progress", back_populates="task", cascade="all, delete-orphan")
+    # 关联关系 - 暂时注释掉，避免循环导入
+    # user = relationship("User", back_populates="tasks")
+    # goal = relationship("Goal", back_populates="tasks")
+    # progresses = relationship("Progress", back_populates="task", cascade="all, delete-orphan")
     
     # 自关联（父子任务）
-    parent_task = relationship("Task", remote_side="Task.id", backref="sub_tasks")
+    # parent_task = relationship("Task", remote_side="Task.id", backref="sub_tasks")
     
     def __repr__(self):
         return f"<Task(id={self.id}, title='{self.title}', status='{self.status.value}')>"

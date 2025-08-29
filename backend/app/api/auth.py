@@ -36,6 +36,8 @@ class RefreshTokenRequest(BaseModel):
 class LogoutRequest(BaseModel):
     access_token: str
 
+
+
 # 响应模型
 class LoginResponse(BaseModel):
     success: bool
@@ -76,55 +78,64 @@ async def get_current_user(
 
 @router.post("/wechat-login", response_model=LoginResponse)
 async def wechat_login(
-    request: WechatLoginRequest,
-    http_request: Request,
+    request: Request,
     auth_service: AuthService = Depends(get_auth_service)
 ):
-    """微信登录"""
+    """微信登录/注册"""
     try:
+        # 从请求体获取code和用户信息
+        body = await request.json()
+        code = body.get('code', '')
+        user_info = body.get('userInfo', {})
+        
+        if not code:
+            return LoginResponse(
+                success=False,
+                message="微信登录code不能为空"
+            )
+        
+        if not user_info:
+            return LoginResponse(
+                success=False,
+                message="用户信息不能为空"
+            )
+        
         result = auth_service.wechat_login(
-            code=request.code,
-            user_info=request.userInfo,
-            phone_number=request.phoneNumber,
-            request=http_request
+            code=code,
+            user_info=user_info,
+            request=request
         )
+        
+        # 调试信息
+        print(f"认证服务返回结果: {result}")
+        print(f"用户数据类型: {type(result.get('user'))}")
+        
+        # 确保用户数据是字典格式
+        user_data = result.get("user", {})
+        if hasattr(user_data, '__dict__'):
+            # 如果是对象，转换为字典
+            user_data = {
+                "id": str(user_data.id),
+                "wechat_id": user_data.wechat_id,
+                "nickname": user_data.nickname,
+                "avatar": user_data.avatar,
+                "phone_number": user_data.phone_number
+            }
         
         return LoginResponse(
             success=True,
             message="登录成功",
             data={
-                "user": {
-                    "id": str(result["user"].id),
-                    "wechat_id": result["user"].wechat_id,
-                    "nickname": result["user"].nickname,
-                    "avatar": result["user"].avatar,
-                    "phone_number": result["user"].phone_number,
-                    "email": result["user"].email,
-                    "notification_enabled": result["user"].notification_enabled,
-                    "privacy_level": result["user"].privacy_level,
-                    "total_goals": result["user"].total_goals,
-                    "completed_goals": result["user"].completed_goals,
-                    "streak_days": result["user"].streak_days,
-                    "is_verified": result["user"].is_verified,
-                    "is_active": result["user"].is_active,
-                    "created_at": result["user"].created_at,
-                    "updated_at": result["user"].updated_at,
-                    "last_login_at": result["user"].last_login_at
-                },
-                "tokens": {
-                    "access_token": result["access_token"],
-                    "refresh_token": result["refresh_token"],
-                    "token_type": result["token_type"]
-                }
+                "user": user_data,
+                "token": result["token"],
+                "isNewUser": result["isNewUser"]
             }
         )
         
-    except HTTPException:
-        raise
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"登录失败: {str(e)}"
+        return LoginResponse(
+            success=False,
+            message=f"登录失败: {str(e)}"
         )
 
 @router.post("/refresh-token", response_model=TokenResponse)
@@ -178,6 +189,8 @@ async def logout(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"登出失败: {str(e)}"
         )
+
+
 
 @router.get("/validate")
 async def validate_token(current_user: User = Depends(get_current_user)):

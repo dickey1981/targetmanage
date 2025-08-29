@@ -1,4 +1,222 @@
 <!--pages/goal-detail/goal-detail.wxml-->
-<view class="goal-detail-container">
-  <text>目标详情页面 - 开发中</text>
+<view class="container">
+  <!-- 顶部导航 -->
+  <view class="header">
+    <view class="back-btn" bindtap="goBack">
+      <text class="back-icon">←</text>
+    </view>
+    <text class="title">目标详情</text>
+    <view class="edit-btn" bindtap="toggleEditMode">
+      <text class="edit-text">{{isEditing ? '完成' : '编辑'}}</text>
+    </view>
+  </view>
+
+  <!-- 目标基本信息 -->
+  <view class="goal-info">
+    <view class="info-header">
+      <text class="goal-title">{{isEditing ? '编辑目标' : '目标信息'}}</text>
+    </view>
+    
+    <!-- 目标标题 -->
+    <view class="info-section">
+      <text class="section-title">目标标题</text>
+      <input wx:if="{{isEditing}}" 
+             class="title-input" 
+             value="{{goalData.title}}" 
+             bindinput="onTitleChange"
+             placeholder="请输入目标标题" />
+      <text wx:else class="info-text">{{goalData.title}}</text>
+    </view>
+
+    <!-- 目标分类 -->
+    <view class="info-section">
+      <text class="section-title">目标分类</text>
+      <picker wx:if="{{isEditing}}" 
+              mode="selector" 
+              range="{{categories}}" 
+              range-key="name" 
+              value="{{categoryIndex}}" 
+              bindchange="onCategoryChange">
+        <view class="picker-display">
+          <text class="picker-text">{{categories[categoryIndex].name}}</text>
+          <text class="picker-arrow">▼</text>
+        </view>
+      </picker>
+      <text wx:else class="info-text">{{goalData.category}}</text>
+    </view>
+
+    <!-- 目标描述 -->
+    <view class="info-section">
+      <text class="section-title">目标描述</text>
+      <textarea wx:if="{{isEditing}}" 
+                class="description-input" 
+                value="{{goalData.description}}" 
+                bindinput="onDescriptionChange"
+                placeholder="请输入目标描述"
+                auto-height />
+      <text wx:else class="info-text">{{goalData.description}}</text>
+    </view>
+
+    <!-- 目标状态和剩余天数 -->
+    <view class="info-section" wx:if="{{!isEditing}}">
+      <text class="section-title">目标状态</text>
+      <view class="status-section">
+        <view class="status-item">
+          <text class="status-label">当前状态</text>
+          <text class="status-value {{statusClass}}">{{goalData.status || '进行中'}}</text>
+        </view>
+        <view class="status-item" wx:if="{{goalData.remaining_days !== undefined}}">
+          <text class="status-label">剩余天数</text>
+          <text class="status-value {{remainingDaysClass}}">
+            {{goalData.remaining_days > 0 ? goalData.remaining_days + '天' : '已过期'}}
+          </text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 时间设置 -->
+    <view class="info-section">
+      <text class="section-title">时间设置</text>
+      <view class="time-inputs">
+        <view class="time-input">
+          <text class="time-label">开始时间</text>
+          <picker wx:if="{{isEditing}}" 
+                  mode="date" 
+                  value="{{goalData.startDate}}" 
+                  bindchange="onStartDateChange">
+            <view class="picker-display">
+              <text class="picker-text">{{goalData.startDate || '请选择开始时间'}}</text>
+              <text class="picker-arrow">▼</text>
+            </view>
+          </picker>
+          <text wx:else class="info-text">{{goalData.startDate || '未设置'}}</text>
+        </view>
+        
+        <view class="time-input">
+          <text class="time-label">结束时间</text>
+          <picker wx:if="{{isEditing}}" 
+                  mode="date" 
+                  value="{{goalData.endDate}}" 
+                  bindchange="onEndDateChange">
+            <view class="picker-display">
+              <text class="picker-text">{{goalData.endDate || '请选择结束时间'}}</text>
+              <text class="picker-arrow">▼</text>
+            </view>
+          </picker>
+          <text wx:else class="info-text">{{goalData.endDate || '未设置'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 量化指标 -->
+    <view class="info-section">
+      <text class="section-title">量化指标</text>
+      <view class="quantification-inputs">
+        <view class="quant-input">
+          <text class="quant-label">目标值</text>
+          <input wx:if="{{isEditing}}" 
+                 class="value-input" 
+                 value="{{goalData.targetValue}}" 
+                 bindinput="onTargetValueChange"
+                 placeholder="目标值" />
+          <text wx:else class="info-text">{{goalData.targetValue || '未设置'}}</text>
+        </view>
+        
+        <view class="quant-input">
+          <text class="quant-label">当前值</text>
+          <input wx:if="{{isEditing}}" 
+                 class="value-input" 
+                 value="{{goalData.currentValue}}" 
+                 bindinput="onCurrentValueChange"
+                 placeholder="当前值" />
+          <text wx:else class="info-text">{{goalData.currentValue || '未设置'}}</text>
+        </view>
+        
+        <view class="quant-input">
+          <text class="quant-label">单位</text>
+          <input wx:if="{{isEditing}}" 
+                 class="unit-input" 
+                 value="{{goalData.unit}}" 
+                 bindinput="onUnitChange"
+                 placeholder="单位" />
+          <text wx:else class="info-text">{{goalData.unit || '未设置'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 进度显示 -->
+    <view class="info-section" wx:if="{{!isEditing && goalData.targetValue && goalData.currentValue}}">
+      <text class="section-title">当前进度</text>
+      <view class="progress-section">
+        <view class="progress-bar">
+          <view class="progress-fill" style="width: {{progressPercentage}}%"></view>
+        </view>
+        <text class="progress-text">{{progressPercentage}}%</text>
+      </view>
+    </view>
+
+    <!-- 优先级 -->
+    <view class="info-section">
+      <text class="section-title">优先级</text>
+      <view wx:if="{{isEditing}}" class="priority-options">
+        <view class="priority-item {{goalData.priority === 'high' ? 'selected' : ''}}" 
+              bindtap="selectPriority" 
+              data-priority="high">
+          <text class="priority-icon">🔥</text>
+          <text class="priority-name">高</text>
+        </view>
+        <view class="priority-item {{goalData.priority === 'medium' ? 'selected' : ''}}" 
+              bindtap="selectPriority" 
+              data-priority="medium">
+          <text class="priority-icon">⚡</text>
+          <text class="priority-name">中</text>
+        </view>
+        <view class="priority-item {{goalData.priority === 'low' ? 'selected' : ''}}" 
+              bindtap="selectPriority" 
+              data-priority="low">
+          <text class="priority-icon">🌱</text>
+          <text class="priority-name">低</text>
+        </view>
+      </view>
+      <text wx:else class="info-text">
+        <text wx:if="{{goalData.priority === 'high'}}">🔥 高</text>
+        <text wx:elif="{{goalData.priority === 'medium'}}">⚡ 中</text>
+        <text wx:elif="{{goalData.priority === 'low'}}">🌱 低</text>
+        <text wx:else>未设置</text>
+      </text>
+    </view>
+
+    <!-- 提醒设置 -->
+    <view class="info-section">
+      <text class="section-title">提醒设置</text>
+      <view class="reminder-options">
+        <view class="reminder-item">
+          <text class="reminder-label">每日提醒</text>
+          <switch wx:if="{{isEditing}}" 
+                  checked="{{goalData.dailyReminder}}" 
+                  bindchange="onDailyReminderChange" />
+          <text wx:else class="info-text">{{goalData.dailyReminder ? '开启' : '关闭'}}</text>
+        </view>
+        
+        <view class="reminder-item">
+          <text class="reminder-label">截止提醒</text>
+          <switch wx:if="{{isEditing}}" 
+                  checked="{{goalData.deadlineReminder}}" 
+                  bindchange="onDeadlineReminderChange" />
+          <text wx:else class="info-text">{{goalData.deadlineReminder ? '开启' : '关闭'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 创建时间 -->
+    <view class="info-section">
+      <text class="section-title">创建时间</text>
+      <text class="info-text">{{goalData.createdAt}}</text>
+    </view>
+  </view>
+
+  <!-- 编辑模式下的保存按钮 -->
+  <view class="save-section" wx:if="{{isEditing}}">
+    <button class="save-btn" bindtap="saveChanges">保存修改</button>
+  </view>
 </view>

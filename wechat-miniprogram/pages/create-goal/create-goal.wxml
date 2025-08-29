@@ -1,0 +1,164 @@
+<!-- 创建目标页面 -->
+<view class="container">
+  <!-- 页面头部 -->
+  <view class="header">
+    <view class="back-btn" bindtap="goBack">←</view>
+    <text class="title">创建新目标</text>
+    <view class="save-btn" bindtap="saveGoal">保存</view>
+  </view>
+
+  <!-- 语音识别结果 -->
+  <view class="voice-result-section" wx:if="{{voiceResult || isEditing}}">
+    <view class="result-header">
+      <text class="result-title">🎤 语音识别结果</text>
+      <text class="result-edit" bindtap="toggleEditMode">{{isEditing ? '完成' : '编辑'}}</text>
+    </view>
+    <view class="result-content">
+      <textarea wx:if="{{isEditing}}" 
+                class="result-textarea" 
+                value="{{voiceResult}}" 
+                bindinput="onVoiceResultEdit"
+                placeholder="请输入或修改目标内容"
+                auto-height />
+      <text wx:else class="result-text">{{voiceResult || '暂无语音识别结果'}}</text>
+    </view>
+  </view>
+
+  <!-- 目标信息表单 -->
+  <view class="goal-form">
+    <!-- 基本信息 -->
+    <view class="form-section">
+      <text class="section-title">目标标题</text>
+      <input class="title-input" 
+             placeholder="输入目标标题" 
+             value="{{goalData.title}}"
+             bindinput="onTitleInput" />
+    </view>
+
+    <view class="form-section">
+      <text class="section-title">目标分类</text>
+      <picker class="category-picker" 
+              mode="selector" 
+              range="{{categories}}" 
+              range-key="name"
+              value="{{categoryIndex}}"
+              bindchange="onCategoryChange">
+        <view class="picker-display">
+          <text class="picker-text">{{goalData.category}}</text>
+          <text class="picker-arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-section">
+      <text class="section-title">目标描述</text>
+      <textarea class="description-input" 
+                placeholder="详细描述你的目标" 
+                value="{{goalData.description}}"
+                bindinput="onDescriptionInput" />
+    </view>
+
+    <!-- 时间设置 -->
+    <view class="form-section">
+      <text class="section-title">时间范围</text>
+      <view class="time-inputs">
+        <view class="time-input">
+          <text class="time-label">开始时间</text>
+          <picker mode="date" value="{{goalData.startDate}}" bindchange="onStartDateChange">
+            <view class="picker-text">{{goalData.startDateText}}</view>
+          </picker>
+        </view>
+        <view class="time-input">
+          <text class="time-label">结束时间</text>
+          <picker mode="date" value="{{goalData.endDate}}" bindchange="onEndDateChange">
+            <view class="picker-text">{{goalData.endDateText}}</view>
+          </picker>
+        </view>
+      </view>
+    </view>
+
+    <!-- 量化指标 -->
+    <view class="form-section">
+      <text class="section-title">量化指标</text>
+      <view class="quantification-inputs">
+        <view class="quant-input">
+          <text class="quant-label">目标值</text>
+          <input class="value-input" 
+                 placeholder="数值" 
+                 value="{{goalData.targetValue}}"
+                 bindinput="onTargetValueInput" />
+        </view>
+        <view class="quant-input">
+          <text class="quant-label">当前值</text>
+          <input class="value-input" 
+                 placeholder="数值" 
+                 value="{{goalData.currentValue}}"
+                 bindinput="onCurrentValueInput" />
+        </view>
+        <view class="quant-input">
+          <text class="quant-label">单位</text>
+          <input class="unit-input" 
+                 placeholder="如：天、次、页" 
+                 value="{{goalData.unit}}"
+                 bindinput="onUnitInput" />
+        </view>
+      </view>
+    </view>
+
+    <!-- 优先级设置 -->
+    <view class="form-section">
+      <text class="section-title">优先级</text>
+      <view class="priority-options">
+        <view class="priority-item {{goalData.priority === 'high' ? 'selected' : ''}}" 
+              bindtap="selectPriority" 
+              data-priority="high">
+          <text class="priority-icon">🔴</text>
+          <text class="priority-name">高</text>
+        </view>
+        <view class="priority-item {{goalData.priority === 'medium' ? 'selected' : ''}}" 
+              bindtap="selectPriority" 
+              data-priority="medium">
+          <text class="priority-icon">🟡</text>
+          <text class="priority-name">中</text>
+        </view>
+        <view class="priority-item {{goalData.priority === 'low' ? 'selected' : ''}}" 
+              bindtap="selectPriority" 
+              data-priority="low">
+          <text class="priority-icon">🟢</text>
+          <text class="priority-name">低</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 提醒设置 -->
+    <view class="form-section">
+      <text class="section-title">提醒设置</text>
+      <view class="reminder-options">
+        <view class="reminder-item">
+          <text class="reminder-label">每日提醒</text>
+          <switch checked="{{goalData.dailyReminder}}" bindchange="onDailyReminderChange" />
+        </view>
+        <view class="reminder-item">
+          <text class="reminder-label">截止提醒</text>
+          <switch checked="{{goalData.deadlineReminder}}" bindchange="onDeadlineReminderChange" />
+        </view>
+      </view>
+    </view>
+
+    <!-- 验证提示 -->
+    <view class="validation-section" wx:if="{{validationErrors.length > 0}}">
+      <text class="validation-title">需要完善的信息</text>
+      <view class="error-list">
+        <text class="error-item" wx:for="{{validationErrors}}" wx:key="*this">• {{item}}</text>
+      </view>
+    </view>
+
+    <!-- 智能建议 -->
+    <view class="suggestion-section" wx:if="{{suggestions.length > 0}}">
+      <text class="suggestion-title">智能建议</text>
+      <view class="suggestion-list">
+        <text class="suggestion-item" wx:for="{{suggestions}}" wx:key="*this">💡 {{item}}</text>
+      </view>
+    </view>
+  </view>
+</view>

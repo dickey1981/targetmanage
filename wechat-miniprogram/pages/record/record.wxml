@@ -1,0 +1,119 @@
+<!--pages/record/record.wxml-->
+<view class="container">
+  <!-- 顶部标题 -->
+  <view class="header">
+    <text class="title">过程记录</text>
+    <text class="subtitle">记录您的目标实现过程</text>
+  </view>
+
+  <!-- 记录类型选择 -->
+  <view class="record-types">
+    <view 
+      wx:for="{{recordTypes}}" 
+      wx:key="id"
+      class="record-type-item"
+      data-id="{{item.id}}"
+      bindtap="onSelectRecordType"
+    >
+      <view class="type-icon" style="background-color: {{item.color}}">
+        {{item.icon}}
+      </view>
+      <text class="type-name">{{item.name}}</text>
+    </view>
+  </view>
+
+  <!-- 最近记录 -->
+  <view class="recent-records" wx:if="{{isLoggedIn && recentRecords.length > 0}}">
+    <view class="section-header">
+      <text class="section-title">最近记录</text>
+      <text class="section-more">查看全部</text>
+    </view>
+    <view class="records-list">
+      <view 
+        wx:for="{{recentRecords}}" 
+        wx:key="id"
+        class="record-item"
+        data-record-id="{{item.id}}"
+        bindtap="viewRecordDetail"
+      >
+        <view class="record-icon">
+          <text class="icon">{{item.type === 'voice' ? '🎤' : item.type === 'photo' ? '📷' : item.type === 'text' ? '✏️' : '📝'}}</text>
+        </view>
+        <view class="record-content">
+          <text class="record-text">{{item.content}}</text>
+          <text class="record-time">{{item.created_at}}</text>
+        </view>
+        <view class="record-arrow">></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{isLoggedIn && recentRecords.length === 0}}">
+    <text class="empty-text">还没有记录</text>
+    <text class="empty-hint">选择上方记录类型开始记录</text>
+  </view>
+
+  <!-- 未登录提示 -->
+  <view class="login-tip" wx:if="{{!isLoggedIn}}">
+    <text class="tip-text">请先登录后使用记录功能</text>
+  </view>
+
+  <!-- 记录模态框 -->
+  <view class="record-modal {{showRecordModal ? 'show' : ''}}" wx:if="{{showRecordModal}}">
+    <view class="modal-content">
+      <view class="modal-header">
+        <text class="modal-title">
+          {{currentRecordType === 'voice' ? '语音记录' : 
+            currentRecordType === 'photo' ? '拍照记录' : 
+            currentRecordType === 'text' ? '文字记录' : '手动录入'}}
+        </text>
+        <text class="modal-close" bindtap="closeRecordModal">×</text>
+      </view>
+      
+      <view class="modal-body">
+        <!-- 语音记录 -->
+        <view wx:if="{{currentRecordType === 'voice'}}" class="voice-record">
+          <view class="voice-button-container">
+            <button 
+              class="voice-button {{isRecording ? 'recording' : ''}}"
+              bindtouchstart="startVoiceRecord"
+              bindtouchend="stopVoiceRecord"
+            >
+              <text class="voice-icon">🎤</text>
+              <view class="voice-text">
+                <text class="main-text">{{recordingText}}</text>
+                <text class="sub-text">{{voiceHint}}</text>
+              </view>
+            </button>
+          </view>
+        </view>
+
+        <!-- 拍照记录 -->
+        <view wx:if="{{currentRecordType === 'photo'}}" class="photo-record">
+          <button class="photo-btn" bindtap="takePhoto">
+            <text class="photo-icon">📷</text>
+            <text class="photo-text">点击拍照</text>
+          </button>
+        </view>
+
+        <!-- 文字记录 -->
+        <view wx:if="{{currentRecordType === 'text'}}" class="text-record">
+          <textarea 
+            class="text-input" 
+            placeholder="请输入记录内容..."
+            bindinput="onTextInput"
+            maxlength="500"
+          ></textarea>
+          <text class="text-hint">最多500字</text>
+        </view>
+
+        <!-- 手动录入 -->
+        <view wx:if="{{currentRecordType === 'manual'}}" class="manual-record">
+          <input class="manual-input" placeholder="请输入记录内容..." />
+          <button class="submit-btn">提交记录</button>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

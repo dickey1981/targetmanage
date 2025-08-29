@@ -10,6 +10,7 @@ import hashlib
 import requests
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status, Request
+import uuid
 
 from ..config.settings import get_settings
 from ..models.user import User, UserCreate
@@ -162,86 +163,76 @@ class AuthService:
         
         return login_attempt
     
-    def wechat_login(self, code: str, user_info: dict, phone_number: str = None, 
-                    request: Request = None) -> dict:
-        """微信登录"""
+    def wechat_login(self, code: str, user_info: dict, request: Request) -> dict:
+        """微信登录/注册"""
         try:
-            # 获取微信openid
-            openid = self._get_wechat_openid(code)
-            if not openid:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="微信授权失败"
-                )
+            # 调试信息
+            print(f"接收到的微信code: {code}")
+            print(f"接收到的微信用户信息: {user_info}")
             
-            # 检查用户是否已存在
-            user = self.db.query(User).filter(User.wechat_id == openid).first()
+            # 1. 通过code获取微信openId
+            wechat_id = self._get_wechat_openid(code)
+            if not wechat_id:
+                raise Exception("无法获取微信openId")
             
-            if user:
-                # 检查用户是否被锁定
-                if user.is_locked_out:
-                    self.record_login_attempt(
-                        wechat_id=openid, 
-                        success=False, 
-                        failure_reason="账户被锁定",
-                        request=request
-                    )
-                    raise HTTPException(
-                        status_code=status.HTTP_423_LOCKED,
-                        detail="账户被锁定，请15分钟后再试"
-                    )
+            print(f"获取到的微信ID: {wechat_id}")
+            
+            # 2. 检查用户是否已存在（通过微信ID）
+            existing_user = self.db.query(User).filter(
+                User.wechat_id == wechat_id
+            ).first()
+            
+            if existing_user:
+                # 用户已存在，直接登录
+                user = existing_user
+                is_new_user = False
                 
                 # 更新用户信息
-                user.nickname = user_info.get("nickName", user.nickname)
-                user.avatar = user_info.get("avatarUrl", user.avatar)
-                if phone_number and phone_number != "未授权":
-                    user.phone_number = phone_number
-                user.last_login_at = datetime.utcnow()
+                user.nickname = user_info.get('nickName', user.nickname)
+                user.avatar = user_info.get('avatarUrl', user.avatar)
                 user.updated_at = datetime.utcnow()
                 
-                # 重置失败登录次数
-                user.reset_failed_login_attempts()
-                
             else:
-                # 创建新用户
-                user_data = UserCreate(
-                    wechat_id=openid,
-                    nickname=user_info.get("nickName", "微信用户"),
-                    avatar=user_info.get("avatarUrl", ""),
-                    phone_number=phone_number if phone_number != "未授权" else None
+                # 用户不存在，创建新用户
+                user = User(
+                    id=str(uuid.uuid4()),
+                    wechat_id=wechat_id,
+                    nickname=user_info.get('nickName', ''),
+                    avatar=user_info.get('avatarUrl', ''),
+                    phone_number='',  # 暂时为空，后续可以通过其他方式获取
+                    created_at=datetime.utcnow(),
+                    updated_at=datetime.utcnow()
                 )
-                user = User(**user_data.dict())
                 self.db.add(user)
-                self.db.commit()
-                self.db.refresh(user)
+                is_new_user = True
             
-            # 创建会话
+            # 3. 保存更改
+            self.db.commit()
+            self.db.refresh(user)
+            
+            # 4. 创建会话和token
             session = self.create_user_session(str(user.id), request)
             
-            # 记录成功登录
-            self.record_login_attempt(
-                wechat_id=openid, 
-                success=True,
-                request=request
-            )
+            # 5. 记录登录尝试
+            self._record_login_attempt(str(user.id), request, True)
             
             return {
-                "user": user,
-                "access_token": session.session_token,
-                "refresh_token": session.refresh_token,
-                "token_type": "bearer"
+                "user": {
+                    "id": str(user.id),
+                    "wechat_id": user.wechat_id,
+                    "nickname": user.nickname,
+                    "avatar": user.avatar,
+                    "phone_number": user.phone_number
+                },
+                "token": session.session_token,
+                "isNewUser": is_new_user
             }
             
         except Exception as e:
             self.db.rollback()
-            # 记录失败登录
-            self.record_login_attempt(
-                wechat_id=user_info.get("openId"), 
-                success=False, 
-                failure_reason=str(e),
-                request=request
-            )
-            raise
+            # 记录失败的登录尝试
+            self._record_login_attempt(None, request, False)
+            raise e
     
     def _get_wechat_openid(self, code: str) -> Optional[str]:
         """获取微信openid"""
@@ -343,6 +334,98 @@ class AuthService:
         except Exception as e:
             self.db.rollback()
             return False
+
+    def phone_login(self, code: str, user_info: dict, request: Request) -> dict:
+        """手机号登录/注册"""
+        try:
+            # 1. 通过code获取手机号
+            phone_number = self._get_phone_number_from_code(code)
+            
+            # 2. 检查用户是否已存在
+            existing_user = self.db.query(User).filter(
+                User.phone_number == phone_number
+            ).first()
+            
+            if existing_user:
+                # 用户已存在，直接登录
+                user = existing_user
+                is_new_user = False
+                
+                # 更新用户信息
+                user.nickname = user_info.get('nickName', user.nickname)
+                user.avatar = user_info.get('avatarUrl', user.avatar)
+                user.wechat_id = user_info.get('openId', user.wechat_id)
+                user.updated_at = datetime.utcnow()
+                
+            else:
+                # 用户不存在，创建新用户
+                user = User(
+                    id=str(uuid.uuid4()),
+                    wechat_id=user_info.get('openId', ''),
+                    nickname=user_info.get('nickName', ''),
+                    avatar=user_info.get('avatarUrl', ''),
+                    phone_number=phone_number,
+                    created_at=datetime.utcnow(),
+                    updated_at=datetime.utcnow()
+                )
+                self.db.add(user)
+                is_new_user = True
+            
+            # 3. 保存更改
+            self.db.commit()
+            self.db.refresh(user)
+            
+            # 4. 创建会话和token
+            session = self.create_user_session(str(user.id), request)
+            
+            # 5. 记录登录尝试
+            self._record_login_attempt(str(user.id), request, True)
+            
+            return {
+                "user": {
+                    "id": str(user.id),
+                    "wechat_id": user.wechat_id,
+                    "nickname": user.nickname,
+                    "avatar": user.avatar,
+                    "phone_number": user.phone_number
+                },
+                "token": session.session_token,
+                "isNewUser": is_new_user
+            }
+            
+        except Exception as e:
+            self.db.rollback()
+            # 记录失败的登录尝试
+            self._record_login_attempt(None, request, False)
+            raise e
+
+    def _get_phone_number_from_code(self, code: str) -> str:
+        """通过code获取手机号"""
+        # TODO: 调用微信API获取手机号
+        # 这里需要实现微信手机号解密逻辑
+        # 暂时返回模拟数据
+        return "13800138000"
+
+    def _record_login_attempt(self, user_id: str, request: Request, success: bool):
+        """记录登录尝试"""
+        try:
+            login_attempt = LoginAttempt(
+                id=str(uuid.uuid4()),
+                user_id=user_id,
+                ip_address=self._get_client_ip(request),
+                user_agent=request.headers.get("user-agent", ""),
+                success=success
+            )
+            self.db.add(login_attempt)
+            self.db.commit()
+            print(f"✅ 登录尝试记录成功: user_id={user_id}, success={success}")
+        except Exception as e:
+            # 记录登录尝试失败不影响主流程
+            print(f"❌ 记录登录尝试失败: {e}")
+            print(f"错误类型: {type(e).__name__}")
+            print(f"错误详情: {str(e)}")
+            import traceback
+            print(f"错误堆栈: {traceback.format_exc()}")
     
     def validate_session(self, access_token: str) -> Optional[User]:
         """验证会话有效性"""

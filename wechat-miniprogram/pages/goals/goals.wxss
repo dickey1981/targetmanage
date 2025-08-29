@@ -1,5 +1,655 @@
-/* pages/goals/goals.wxss */
-.goals-container {
-  padding: 40rpx;
+/* 目标管理页面样式 */
+.container {
+  min-height: 100vh;
+  background: #ffffff;
+  padding: 0;
+}
+
+/* 顶部导航 */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 30rpx;
+  background: #ffffff;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.page-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.header-actions {
+  display: flex;
+  gap: 20rpx;
+}
+
+.filter-btn, .create-btn {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%;
+  background: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.filter-btn:active, .create-btn:active {
+  transform: scale(0.95);
+  background: #e9ecef;
+}
+
+.filter-icon, .create-icon {
+  font-size: 32rpx;
+  color: #666;
+}
+
+/* 目标统计概览 */
+.goals-overview {
+  display: flex;
+  justify-content: space-around;
+  padding: 30rpx;
+  background: #fafbfc;
+  margin: 20rpx;
+  border-radius: 16rpx;
+}
+
+.overview-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
+}
+
+.overview-number {
+  font-size: 40rpx;
+  font-weight: 600;
+  color: #00B4D8;
+  margin-bottom: 8rpx;
+}
+
+.overview-label {
+  font-size: 24rpx;
+  color: #666;
+}
+
+/* 目标列表 */
+.goals-list {
+  padding: 0 30rpx;
+}
+
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+
+.list-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.sort-options {
+  display: flex;
+  gap: 20rpx;
+}
+
+.sort-option {
+  font-size: 24rpx;
+  color: #666;
+  padding: 8rpx 16rpx;
+  border-radius: 20rpx;
+  background: #f8f9fa;
+  transition: all 0.3s ease;
+}
+
+.sort-option.active {
+  background: #00B4D8;
+  color: #ffffff;
+}
+
+/* 目标卡片 */
+.goal-card {
+  background: #f8f9fa;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  border: 1rpx solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.goal-card:active {
+  transform: scale(0.98);
+  background: #e9ecef;
+}
+
+.goal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.goal-category {
+  font-size: 22rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.goal-category.work {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.goal-category.study {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.goal-category.health {
+  background: #fce4ec;
+  color: #c2185b;
+}
+
+.goal-category.life {
+  background: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.goal-status {
+  font-size: 22rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
+}
+
+.goal-status.in-progress {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.goal-status.completed {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.goal-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 12rpx;
+}
+
+.goal-description {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 20rpx;
+  line-height: 1.4;
+}
+
+.goal-progress {
+  margin-bottom: 20rpx;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+
+.progress-text {
+  font-size: 24rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.progress-detail {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.progress-bar {
+  height: 8rpx;
+  background: #e9ecef;
+  border-radius: 4rpx;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #00B4D8 0%, #0077B6 100%);
+  border-radius: 4rpx;
+  transition: width 0.3s ease;
+}
+
+.goal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.deadline {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.days-left {
+  font-size: 24rpx;
+  color: #00B4D8;
+  font-weight: 500;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80rpx 40rpx;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 120rpx;
+  margin-bottom: 20rpx;
+}
+
+.empty-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 12rpx;
+}
+
+.empty-subtitle {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 40rpx;
+  line-height: 1.4;
+}
+
+.create-first-btn {
+  background: linear-gradient(135deg, #00B4D8 0%, #0077B6 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 44rpx;
+  padding: 20rpx 40rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+/* 创建目标弹窗 */
+.create-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  width: 90%;
+  max-width: 600rpx;
+  max-height: 90vh;
+  background: #ffffff;
+  border-radius: 24rpx;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.modal-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.close-btn {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%;
+  background: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  color: #666;
+  cursor: pointer;
+}
+
+/* 语音创建区域 */
+.voice-section {
+  padding: 30rpx;
+  text-align: center;
+}
+
+.voice-button {
+  width: 280rpx;
+  height: 280rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #00B4D8 0%, #0077B6 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 30rpx;
+  box-shadow: 0 8rpx 24rpx rgba(0, 180, 216, 0.3);
+  transition: all 0.3s ease;
+}
+
+.voice-button.recording {
+  transform: scale(1.1);
+  box-shadow: 0 12rpx 32rpx rgba(0, 180, 216, 0.5);
+}
+
+.voice-icon {
+  margin-bottom: 16rpx;
+}
+
+.voice-icon .icon {
+  font-size: 80rpx;
+  color: #ffffff;
+}
+
+.voice-text {
+  text-align: center;
+}
+
+.voice-text .main-text {
+  font-size: 28rpx;
+  color: #ffffff;
+  font-weight: 500;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.voice-text .sub-text {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* 语音提示 */
+.voice-tip {
+  text-align: center;
+  margin-top: 20rpx;
+}
+
+.tip-text {
+  display: block;
+  font-size: 24rpx;
+  color: #6c757d;
+  line-height: 1.6;
+  margin-bottom: 8rpx;
+}
+
+/* 语音识别结果 */
+.voice-result {
+  background: #f8f9fa;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 30rpx;
+}
+
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.result-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.result-edit {
+  font-size: 24rpx;
+  color: #00B4D8;
+  cursor: pointer;
+}
+
+.result-content {
+  background: #ffffff;
+  border-radius: 12rpx;
+  padding: 16rpx;
+}
+
+.result-text {
+  font-size: 28rpx;
+  color: #333;
+  line-height: 1.4;
+}
+
+/* 目标信息表单 */
+.goal-form {
+  padding: 0 30rpx 30rpx;
+}
+
+.form-section {
+  margin-bottom: 30rpx;
+}
+
+.section-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 16rpx;
+  display: block;
+}
+
+.title-input, .description-input {
+  width: 100%;
+  padding: 20rpx;
+  border: 2rpx solid #e9ecef;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.title-input:focus, .description-input:focus {
+  border-color: #00B4D8;
+}
+
+.description-input {
+  height: 120rpx;
+  resize: none;
+}
+
+/* 分类选择 */
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20rpx;
+}
+
+.category-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24rpx;
+  border: 2rpx solid #e9ecef;
+  border-radius: 16rpx;
+  background: #ffffff;
+  transition: all 0.3s ease;
+}
+
+.category-item.selected {
+  border-color: #00B4D8;
+  background: #f0f9ff;
+}
+
+.category-icon {
+  font-size: 48rpx;
+  margin-bottom: 12rpx;
+}
+
+.category-name {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+/* 时间输入 */
+.time-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20rpx;
+}
+
+.time-input {
+  display: flex;
+  flex-direction: column;
+}
+
+.time-label {
+  font-size: 24rpx;
+  color: #666;
+  margin-bottom: 12rpx;
+}
+
+.picker-text {
+  padding: 20rpx;
+  border: 2rpx solid #e9ecef;
+  border-radius: 12rpx;
+  background: #ffffff;
+  font-size: 28rpx;
+  color: #333;
+  text-align: center;
+}
+
+/* 量化指标输入 */
+.quantification-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20rpx;
+}
+
+.quant-input {
+  display: flex;
+  flex-direction: column;
+}
+
+.quant-label {
+  font-size: 24rpx;
+  color: #666;
+  margin-bottom: 12rpx;
+}
+
+.value-input, .unit-input {
+  padding: 20rpx;
+  border: 2rpx solid #e9ecef;
+  border-radius: 12rpx;
+  background: #ffffff;
+  font-size: 28rpx;
+  color: #333;
+  text-align: center;
+}
+
+.value-input:focus, .unit-input:focus {
+  border-color: #00B4D8;
+}
+
+/* 验证和提示 */
+.validation-section, .suggestion-section {
+  background: #fff3cd;
+  border: 1rpx solid #ffeaa7;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.validation-title, .suggestion-title {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #856404;
+  margin-bottom: 16rpx;
+  display: block;
+}
+
+.error-list, .suggestion-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.error-item, .suggestion-item {
+  font-size: 24rpx;
+  color: #856404;
+  line-height: 1.4;
+}
+
+/* 操作按钮 */
+.modal-actions {
+  display: flex;
+  gap: 20rpx;
+  padding: 30rpx;
+  border-top: 1rpx solid #f0f0f0;
+}
+
+.btn {
+  flex: 1;
+  padding: 24rpx;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #00B4D8 0%, #0077B6 100%);
+  color: #ffffff;
+}
+
+.btn-primary:disabled {
+  background: #cccccc;
+  color: #666666;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #f8f9fa;
+  color: #666;
+  border: 2rpx solid #e9ecef;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+/* 成功提示 */
+.success-toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #4caf50;
+  color: #ffffff;
+  padding: 24rpx 40rpx;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  z-index: 2000;
+  box-shadow: 0 8rpx 24rpx rgba(76, 175, 80, 0.3);
 }
