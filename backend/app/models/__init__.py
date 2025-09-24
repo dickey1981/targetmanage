@@ -5,5 +5,6 @@ from .user import User
 from .goal import Goal
 from .task import Task
 from .progress import Progress
+from .process_record import ProcessRecord
 
-__all__ = ["Base", "User", "Goal", "Task", "Progress"]
+__all__ = ["Base", "User", "Goal", "Task", "Progress", "ProcessRecord"]

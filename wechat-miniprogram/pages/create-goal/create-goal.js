@@ -36,14 +36,25 @@ Page({
     
     // 验证和提示
     validationErrors: [],
-    suggestions: []
+    suggestions: [],
+    
+    // 自定义弹窗数据
+    showParsingModal: false,
+    parsingModalData: {
+      voiceResult: '',
+      suggestions: []
+    }
   },
 
   onLoad(options) {
     console.log('创建目标页面加载，参数:', options)
     
-    // 检查是否有语音识别结果
-    if (options.voiceResult) {
+    // 检查是否来自语音创建
+    if (options.fromVoice === 'true') {
+      console.log('来自语音创建流程')
+      this.handleVoiceParsedGoal()
+    } else if (options.voiceResult) {
+      // 检查是否有语音识别结果
       const voiceResult = decodeURIComponent(options.voiceResult)
       console.log('收到语音识别结果:', voiceResult)
       
@@ -68,6 +79,47 @@ Page({
     
     // 设置分类选择器索引
     this.setCategoryIndex()
+  },
+
+  // 处理语音解析的目标数据
+  handleVoiceParsedGoal() {
+    const voiceParsedGoal = app.globalData.voiceParsedGoal
+    if (voiceParsedGoal) {
+      console.log('处理语音解析的目标数据:', voiceParsedGoal)
+      
+      // 转换日期格式
+      const goalData = {
+        title: voiceParsedGoal.title || '',
+        category: voiceParsedGoal.category || '学习',
+        description: voiceParsedGoal.description || '',
+        startDate: voiceParsedGoal.startDate || '',
+        endDate: voiceParsedGoal.endDate || '',
+        startDateText: voiceParsedGoal.startDate ? this.formatDateText(new Date(voiceParsedGoal.startDate)) : '请选择开始时间',
+        endDateText: voiceParsedGoal.endDate ? this.formatDateText(new Date(voiceParsedGoal.endDate)) : '请选择结束时间',
+        targetValue: voiceParsedGoal.targetValue || '',
+        currentValue: voiceParsedGoal.currentValue || '0',
+        unit: voiceParsedGoal.unit || '',
+        priority: voiceParsedGoal.priority || 'medium',
+        dailyReminder: voiceParsedGoal.dailyReminder !== undefined ? voiceParsedGoal.dailyReminder : true,
+        deadlineReminder: voiceParsedGoal.deadlineReminder !== undefined ? voiceParsedGoal.deadlineReminder : true
+      }
+      
+      // 更新表单数据
+      this.setData({
+        goalData: goalData,
+        voiceResult: voiceParsedGoal.title || ''
+      })
+      
+      // 更新分类选择器索引
+      this.setCategoryIndex()
+      
+      // 清除全局数据
+      app.globalData.voiceParsedGoal = null
+      
+      console.log('语音解析数据已填充到表单')
+    } else {
+      console.log('没有找到语音解析的目标数据')
+    }
   },
 
   // 返回上一页
@@ -127,7 +179,116 @@ Page({
   parseVoiceResult(voiceText) {
     console.log('开始解析语音内容:', voiceText)
     
-    // 智能解析语音内容
+    // 显示加载提示
+    wx.showLoading({
+      title: '正在解析语音...',
+      mask: true
+    })
+    
+    // 调用后端语音解析API
+    wx.request({
+      url: `${app.globalData.baseUrl}/api/goals/parse-voice`,
+      method: 'POST',
+      header: {
+        'Authorization': `Bearer ${wx.getStorageSync('token')}`,
+        'Content-Type': 'application/json'
+      },
+      data: {
+        voice_text: voiceText
+      },
+      success: (res) => {
+        wx.hideLoading()
+        console.log('语音解析响应:', res)
+        
+        if (res.statusCode === 200 && res.data.success) {
+          const parsedGoal = res.data.data
+          const validation = res.data.validation
+          
+          console.log('后端解析结果:', parsedGoal)
+          console.log('验证结果:', validation)
+          
+          // 转换日期格式
+          const parsedData = {
+            title: parsedGoal.title || '',
+            category: parsedGoal.category || '学习',
+            description: parsedGoal.description || voiceText,
+            startDate: parsedGoal.startDate ? this.formatDateForPicker(parsedGoal.startDate) : '',
+            endDate: parsedGoal.endDate ? this.formatDateForPicker(parsedGoal.endDate) : '',
+            startDateText: parsedGoal.startDate ? this.formatDateText(new Date(parsedGoal.startDate)) : '请选择开始时间',
+            endDateText: parsedGoal.endDate ? this.formatDateText(new Date(parsedGoal.endDate)) : '请选择结束时间',
+            targetValue: parsedGoal.targetValue || '',
+            currentValue: parsedGoal.currentValue || '0',
+            unit: parsedGoal.unit || '',
+            priority: parsedGoal.priority || 'medium',
+            dailyReminder: parsedGoal.dailyReminder !== undefined ? parsedGoal.dailyReminder : true,
+            deadlineReminder: parsedGoal.deadlineReminder !== undefined ? parsedGoal.deadlineReminder : true
+          }
+          
+          // 更新表单数据
+          this.setData({
+            goalData: { ...this.data.goalData, ...parsedData }
+          })
+          
+          // 更新分类选择器索引
+          this.setCategoryIndex()
+          
+          // 显示解析成功提示
+          let message = '语音内容已智能解析'
+          if (validation && validation.score < 80) {
+            message = `解析完成 (评分: ${validation.score}/100)`
+          }
+          
+          wx.showToast({
+            title: message,
+            icon: 'success'
+          })
+          
+          // 处理解析提示信息
+          const parsingHints = res.data.parsing_hints
+          if (parsingHints) {
+            this.handleParsingHints(parsingHints, validation)
+          } else if (validation && validation.warnings && validation.warnings.length > 0) {
+            // 兼容旧的验证警告显示
+            setTimeout(() => {
+              wx.showModal({
+                title: '解析建议',
+                content: validation.warnings[0],
+                showCancel: false,
+                confirmText: '知道了'
+              })
+            }, 1000)
+          }
+          
+        } else {
+          console.error('语音解析失败:', res.data)
+          wx.showToast({
+            title: res.data.message || '语音解析失败',
+            icon: 'none'
+          })
+          
+          // 降级到简单解析
+          this.fallbackParseVoiceResult(voiceText)
+        }
+      },
+      fail: (err) => {
+        wx.hideLoading()
+        console.error('语音解析请求失败:', err)
+        wx.showToast({
+          title: '网络错误，使用简单解析',
+          icon: 'none'
+        })
+        
+        // 降级到简单解析
+        this.fallbackParseVoiceResult(voiceText)
+      }
+    })
+  },
+
+  // 降级解析方法（当后端解析失败时使用）
+  fallbackParseVoiceResult(voiceText) {
+    console.log('使用降级解析:', voiceText)
+    
+    // 简单的正则表达式解析
     const parsedData = {
       title: '',
       category: '学习',
@@ -163,7 +324,7 @@ Page({
     }
     
     // 提取目标值
-    const valueMatch = voiceText.match(/(\d+)\s*(小时|次|页|天|个)/)
+    const valueMatch = voiceText.match(/(\d+)\s*(小时|次|页|天|个|斤|公里|本书)/)
     if (valueMatch) {
       parsedData.targetValue = valueMatch[1]
       parsedData.unit = valueMatch[2]
@@ -175,7 +336,7 @@ Page({
     // 智能分类
     if (voiceText.includes('学习') || voiceText.includes('掌握') || voiceText.includes('Python') || voiceText.includes('框架')) {
       parsedData.category = '学习'
-    } else if (voiceText.includes('健身') || voiceText.includes('运动') || voiceText.includes('健康')) {
+    } else if (voiceText.includes('健身') || voiceText.includes('运动') || voiceText.includes('健康') || voiceText.includes('减重')) {
       parsedData.category = '健康'
     } else if (voiceText.includes('工作') || voiceText.includes('项目') || voiceText.includes('文档')) {
       parsedData.category = '工作'
@@ -183,7 +344,7 @@ Page({
       parsedData.category = '阅读'
     }
     
-    console.log('解析结果:', parsedData)
+    console.log('降级解析结果:', parsedData)
     
     // 更新表单数据
     this.setData({
@@ -192,12 +353,6 @@ Page({
     
     // 更新分类选择器索引
     this.setCategoryIndex()
-    
-    // 显示解析成功提示
-    wx.showToast({
-      title: '语音内容已自动解析',
-      icon: 'success'
-    })
   },
 
   // 标题输入
@@ -267,16 +422,20 @@ Page({
 
   // 每日提醒开关
   onDailyReminderChange(e) {
+    console.log('每日提醒开关变化:', e.detail.value)
     this.setData({
       'goalData.dailyReminder': e.detail.value
     })
+    console.log('更新后的每日提醒状态:', this.data.goalData.dailyReminder)
   },
 
   // 截止提醒开关
   onDeadlineReminderChange(e) {
+    console.log('截止提醒开关变化:', e.detail.value)
     this.setData({
       'goalData.deadlineReminder': e.detail.value
     })
+    console.log('更新后的截止提醒状态:', this.data.goalData.deadlineReminder)
   },
 
   // 验证目标数据
@@ -355,6 +514,12 @@ Page({
     }
 
     console.log('准备发送的目标数据:', goalDataToSend)
+    console.log('提醒设置详情:', {
+      dailyReminder: goalDataToSend.dailyReminder,
+      deadlineReminder: goalDataToSend.deadlineReminder,
+      dailyReminderType: typeof goalDataToSend.dailyReminder,
+      deadlineReminderType: typeof goalDataToSend.deadlineReminder
+    })
 
     // 调用后端API
     wx.request({
@@ -375,9 +540,19 @@ Page({
             icon: 'success'
           })
           
-          // 延迟返回上一页
+          // 延迟跳转到目标管理页面
           setTimeout(() => {
-            wx.navigateBack()
+            wx.switchTab({
+              url: '/pages/goals/goals',
+              success: () => {
+                console.log('成功跳转到目标管理页面')
+              },
+              fail: (err) => {
+                console.error('跳转到目标管理页面失败:', err)
+                // 如果跳转失败，回退到返回上一页
+                wx.navigateBack()
+              }
+            })
           }, 1500)
         } else {
           wx.showToast({
@@ -410,5 +585,119 @@ Page({
     const month = String(date.getMonth() + 1).padStart(2, '0')
     const day = String(date.getDate()).padStart(2, '0')
     return `${year}年${month}月${day}日`
+  },
+
+  // 格式化日期为picker组件需要的格式
+  formatDateForPicker(dateString) {
+    if (!dateString) return '';
+    
+    try {
+      // 处理ISO格式的日期字符串
+      const date = new Date(dateString);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    } catch (e) {
+      console.error('日期格式化失败:', e);
+      return '';
+    }
+  },
+
+  // 处理解析提示信息
+  handleParsingHints(parsingHints, validation) {
+    const quality = parsingHints.parsing_quality
+    const missingElements = parsingHints.missing_elements || []
+    const suggestions = parsingHints.suggestions || []
+    const improvementTips = parsingHints.improvement_tips || []
+    
+    // 根据解析质量决定显示方式
+    if (quality === 'excellent') {
+      // 优秀：只显示成功提示
+      return
+    } else {
+      // 其他情况：显示统一的解析建议弹窗
+      this.showUnifiedParsingHints(parsingHints, validation)
+    }
+  },
+
+  // 显示统一的解析提示弹窗
+  showUnifiedParsingHints(parsingHints, validation) {
+    const quality = parsingHints.parsing_quality
+    const missingElements = parsingHints.missing_elements || []
+    
+    // 准备弹窗数据
+    const voiceResult = this.data.voiceResult || '未识别到目标内容'
+    const improvementSuggestions = this.convertToImprovementSuggestions(missingElements)
+    
+    // 设置弹窗数据
+    this.setData({
+      showParsingModal: true,
+      parsingModalData: {
+        voiceResult: voiceResult,
+        suggestions: improvementSuggestions.slice(0, 2) // 只显示前2个建议
+      }
+    })
+  },
+
+  // 隐藏自定义弹窗
+  hideParsingModal() {
+    this.setData({
+      showParsingModal: false
+    })
+  },
+
+  // 重新录音
+  onReRecord() {
+    this.hideParsingModal()
+    // 返回目标管理页面
+    wx.navigateBack({
+      success: () => {
+        // 延迟一下确保页面切换完成
+        setTimeout(() => {
+          const pages = getCurrentPages()
+          const prevPage = pages[pages.length - 1]
+          if (prevPage && prevPage.route === 'pages/goals/goals') {
+            if (typeof prevPage.showCreateModal === 'function') {
+              prevPage.showCreateModal()
+            }
+          } else {
+            // 如果无法获取到目标管理页面，使用switchTab作为备选方案
+            wx.switchTab({
+              url: '/pages/goals/goals',
+              success: () => {
+                setTimeout(() => {
+                  const currentPages = getCurrentPages()
+                  const currentPage = currentPages[currentPages.length - 1]
+                  if (currentPage && typeof currentPage.showCreateModal === 'function') {
+                    currentPage.showCreateModal()
+                  }
+                }, 300)
+              }
+            })
+          }
+        }, 100)
+      }
+    })
+  },
+
+  // 创建目标
+  onCreateGoal() {
+    this.hideParsingModal()
+    // 保持在当前页面继续编辑
+    console.log('用户选择创建目标，继续编辑')
+  },
+
+  // 将缺少元素转换为改进建议
+  convertToImprovementSuggestions(missingElements) {
+    const suggestionMap = {
+      '明确的数量指标': '增加明确量化目标',
+      '明确的时间期限': '增加明确完成时间期限',
+      '明确的目标类别': '明确目标类别',
+      '详细的目标描述': '提供更详细的目标描述',
+      '具体明确的表达': '使用更具体的表达方式'
+    }
+    
+    return missingElements.map(element => suggestionMap[element] || element)
   }
 })

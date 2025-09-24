@@ -1,0 +1,92 @@
+<!--pages/record-detail/record-detail.wxml-->
+<view class="container">
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading-container">
+    <view class="loading-text">加载中...</view>
+  </view>
+
+  <!-- 错误状态 -->
+  <view wx:elif="{{error}}" class="error-container">
+    <view class="error-text">{{error}}</view>
+    <button class="retry-btn" bindtap="loadRecordDetail">重试</button>
+  </view>
+
+  <!-- 记录详情内容 -->
+  <view wx:else class="record-detail">
+    <!-- 1. 记录内容 -->
+    <view class="content-section">
+      <view class="section-title">记录内容</view>
+      <view class="content-text">{{record.content}}</view>
+    </view>
+
+    <!-- 2. 所属目标 -->
+    <view class="goal-section" wx:if="{{record.goal_id}}">
+      <view class="section-title">所属目标</view>
+      <view class="goal-card" bindtap="goToGoalDetail">
+        <view class="goal-info">
+          <text class="goal-title">{{associatedGoal.title || '加载中...'}}</text>
+          <text class="goal-category" wx:if="{{associatedGoal.category}}">{{associatedGoal.category}}</text>
+        </view>
+        <view class="goal-arrow">></view>
+      </view>
+    </view>
+
+    <!-- 3. 记录类型 -->
+    <view class="record-type-section">
+      <view class="section-title">记录类型</view>
+      <view class="type-display">
+        <text class="type-icon">{{recordTypeIcon}}</text>
+        <text class="type-name">{{recordTypeName}}</text>
+      </view>
+    </view>
+
+    <!-- 4. 记录标签 -->
+    <view class="tags-section" wx:if="{{record.tags && record.tags.length > 0}}">
+      <view class="section-title">标签</view>
+      <view class="tags-container">
+        <view class="tag" wx:for="{{record.tags}}" wx:key="*this">{{item}}</view>
+      </view>
+    </view>
+
+    <!-- 5. 重要标记 -->
+    <view class="flags-section" wx:if="{{record.is_important || record.is_milestone || record.is_breakthrough}}">
+      <view class="section-title">重要标记</view>
+      <view class="flags-container">
+        <view class="flag important" wx:if="{{record.is_important}}">⭐ 重要</view>
+        <view class="flag milestone" wx:if="{{record.is_milestone}}">🏆 里程碑</view>
+        <view class="flag breakthrough" wx:if="{{record.is_breakthrough}}">💡 突破</view>
+      </view>
+    </view>
+
+    <!-- 6. 附件 -->
+    <view class="attachments-section" wx:if="{{record.attachments}}">
+      <view class="section-title">附件</view>
+      
+      <!-- 语音附件 -->
+      <view class="attachment-item" wx:if="{{record.attachments.audio}}">
+        <view class="attachment-icon">🎵</view>
+        <view class="attachment-info">
+          <text class="attachment-name">语音文件</text>
+          <text class="attachment-duration" wx:if="{{record.attachments.duration}}">{{record.attachments.duration}}秒</text>
+        </view>
+        <button class="play-btn" bindtap="playVoiceAttachment" data-url="{{record.attachments.audio}}">播放</button>
+      </view>
+      
+      <!-- 图片附件 -->
+      <view class="attachment-item" wx:if="{{record.attachments.image}}">
+        <view class="attachment-icon">🖼️</view>
+        <view class="attachment-info">
+          <text class="attachment-name">图片文件</text>
+          <text class="attachment-size" wx:if="{{record.attachments.size}}">{{record.attachments.size}}</text>
+        </view>
+        <button class="preview-btn" bindtap="previewImage" data-url="{{record.attachments.image}}">预览</button>
+      </view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="actions-section">
+      <button class="action-btn edit-btn" bindtap="editRecord">编辑</button>
+      <button class="action-btn delete-btn" bindtap="deleteRecord">删除</button>
+    </view>
+  </view>
+</view>

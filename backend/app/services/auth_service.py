@@ -15,7 +15,6 @@ import uuid
 from ..config.settings import get_settings
 from ..models.user import User, UserCreate
 from ..models.session import UserSession, UserSessionCreate, LoginAttempt, LoginAttemptCreate
-from ..database import get_db
 
 settings = get_settings()
 

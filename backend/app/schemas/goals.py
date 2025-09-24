@@ -10,6 +10,8 @@ class GoalItem(BaseModel):
     progress: int
     status: str  # 目标状态
     remaining_days: int  # 剩余天数
+    startDate: Optional[str] = None  # 开始日期
+    endDate: Optional[str] = None    # 结束日期
     created_at: Optional[str] = None
 
 # 创建目标请求模型
@@ -55,6 +57,7 @@ class VoiceGoalParseResponse(BaseModel):
     message: str
     data: Optional[dict] = None
     validation: Optional[dict] = None
+    parsing_hints: Optional[dict] = None  # 添加解析提示信息
 
 class VoiceRecognitionResponse(BaseModel):
     success: bool

@@ -3,6 +3,7 @@
   min-height: 100vh;
   background: #ffffff;
   padding: 0;
+  padding-top: 20rpx;
 }
 
 /* 顶部导航 */
@@ -11,8 +12,11 @@
   justify-content: space-between;
   align-items: center;
   padding: 20rpx 30rpx;
+  margin-bottom: 10rpx;
   background: #ffffff;
   border-bottom: 1rpx solid #f0f0f0;
+  position: relative;
+  z-index: 5;
 }
 
 .page-title {
@@ -23,10 +27,10 @@
 
 .header-actions {
   display: flex;
-  gap: 20rpx;
+  gap: 15rpx;
 }
 
-.filter-btn, .create-btn {
+.action-btn, .create-btn {
   width: 60rpx;
   height: 60rpx;
   border-radius: 50%;
@@ -37,14 +41,41 @@
   transition: all 0.3s ease;
 }
 
-.filter-btn:active, .create-btn:active {
+.action-btn:active, .create-btn:active {
   transform: scale(0.95);
   background: #e9ecef;
 }
 
-.filter-icon, .create-icon {
+.action-icon, .create-icon {
   font-size: 32rpx;
   color: #666;
+}
+
+/* 搜索栏 */
+.search-bar {
+  padding: 20rpx 30rpx;
+  margin-top: 10rpx;
+  background: #fafbfc;
+  border-bottom: 1rpx solid #f0f0f0;
+  position: relative;
+  z-index: 10;
+}
+
+.search-input {
+  width: 100%;
+  padding: 20rpx 30rpx;
+  background: #ffffff;
+  border: 2rpx solid #e9ecef;
+  border-radius: 25rpx;
+  font-size: 28rpx;
+  color: #333;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 11;
+}
+
+.search-input:focus {
+  border-color: #00B4D8;
 }
 
 /* 目标统计概览 */
@@ -55,6 +86,8 @@
   background: #fafbfc;
   margin: 20rpx;
   border-radius: 16rpx;
+  position: relative;
+  z-index: 1;
 }
 
 .overview-item {
@@ -115,17 +148,23 @@
 
 /* 目标卡片 */
 .goal-card {
-  background: #f8f9fa;
+  background: #ffffff;
   border-radius: 16rpx;
   padding: 24rpx;
   margin-bottom: 20rpx;
   border: 1rpx solid #e9ecef;
   transition: all 0.3s ease;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
 }
 
 .goal-card:active {
   transform: scale(0.98);
-  background: #e9ecef;
+  background: #f8f9fa;
+}
+
+.goal-card.completed {
+  opacity: 0.7;
+  background: #f8f9fa;
 }
 
 .goal-header {
@@ -135,12 +174,50 @@
   margin-bottom: 16rpx;
 }
 
+.goal-category-badge {
+  display: flex;
+  align-items: center;
+}
+
 .goal-category {
   font-size: 22rpx;
-  padding: 4rpx 12rpx;
+  padding: 6rpx 16rpx;
   border-radius: 12rpx;
   background: #e3f2fd;
   color: #1976d2;
+  font-weight: 500;
+}
+
+.goal-actions {
+  display: flex;
+  gap: 10rpx;
+}
+
+.action-btn-small {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.action-btn-small.complete {
+  background: #e8f5e8;
+}
+
+.action-btn-small.restore {
+  background: #fff3e0;
+}
+
+.action-btn-small.delete {
+  background: #ffebee;
+}
+
+.action-icon-small {
+  font-size: 24rpx;
+  color: #666;
 }
 
 .goal-category.work {
@@ -233,17 +310,43 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-top: 16rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid #f0f0f0;
 }
 
-.deadline {
-  font-size: 24rpx;
+.goal-dates {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.start-date, .end-date {
+  font-size: 22rpx;
   color: #666;
+}
+
+.goal-status-info {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
 }
 
 .days-left {
   font-size: 24rpx;
   color: #00B4D8;
   font-weight: 500;
+}
+
+.days-left.urgent {
+  color: #ff4757;
+  font-weight: 600;
+}
+
+.status-indicator {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
 }
 
 /* 空状态 */
@@ -636,6 +739,89 @@
 
 .btn:active {
   transform: scale(0.98);
+}
+
+/* 筛选弹窗 */
+.filter-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.filter-content {
+  width: 90%;
+  max-width: 600rpx;
+  max-height: 80vh;
+  background: #ffffff;
+  border-radius: 24rpx;
+  overflow-y: auto;
+}
+
+.filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.filter-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.filter-section {
+  padding: 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.filter-section:last-child {
+  border-bottom: none;
+}
+
+.filter-section-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20rpx;
+  display: block;
+}
+
+.filter-options {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.filter-option {
+  padding: 20rpx 24rpx;
+  border: 2rpx solid #e9ecef;
+  border-radius: 12rpx;
+  background: #ffffff;
+  transition: all 0.3s ease;
+}
+
+.filter-option.active {
+  border-color: #00B4D8;
+  background: #f0f9ff;
+}
+
+.filter-option:active {
+  transform: scale(0.98);
+}
+
+.option-text {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
 }
 
 /* 成功提示 */

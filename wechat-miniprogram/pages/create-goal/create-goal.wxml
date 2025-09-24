@@ -161,4 +161,30 @@
       </view>
     </view>
   </view>
+
+  <!-- 自定义目标解析建议弹窗 -->
+  <view class="custom-modal-overlay" wx:if="{{showParsingModal}}" bindtap="hideParsingModal">
+    <view class="custom-modal" catchtap="">
+      <view class="modal-header">
+        <text class="modal-title">目标解析建议</text>
+        <view class="modal-close" bindtap="hideParsingModal">×</view>
+      </view>
+      <view class="modal-content">
+        <view class="content-section">
+          <text class="section-label">识别内容:</text>
+          <text class="section-content">{{parsingModalData.voiceResult}}</text>
+        </view>
+        <view class="content-section" wx:if="{{parsingModalData.suggestions.length > 0}}">
+          <text class="section-label">建议改进:</text>
+          <view class="suggestions-list">
+            <text class="suggestion-item" wx:for="{{parsingModalData.suggestions}}" wx:key="*this">{{index + 1}}. {{item}}</text>
+          </view>
+        </view>
+      </view>
+      <view class="modal-actions">
+        <view class="modal-btn cancel-btn" bindtap="onReRecord">重新录音</view>
+        <view class="modal-btn confirm-btn" bindtap="onCreateGoal">创建目标</view>
+      </view>
+    </view>
+  </view>
 </view>

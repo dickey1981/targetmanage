@@ -18,7 +18,6 @@ class BaseModel(Base):
     id = Column(Integer, primary_key=True, index=True, comment="主键ID")
     created_at = Column(DateTime, default=datetime.utcnow, comment="创建时间")
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, comment="更新时间")
-    is_deleted = Column(Boolean, default=False, comment="是否删除")
     
     def to_dict(self):
         """转换为字典"""

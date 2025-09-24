@@ -54,7 +54,7 @@ class VoiceGoalParser:
             voice_text: 语音识别的文本内容
         
         Returns:
-            解析后的目标数据结构
+            解析后的目标数据结构，包含解析提示信息
         """
         logger.info(f"开始解析语音文本: {voice_text}")
         
@@ -68,6 +68,9 @@ class VoiceGoalParser:
         target_value, unit = self._parse_quantification(cleaned_text)
         description = self._generate_description(cleaned_text, target_value, unit)
         
+        # 生成解析提示
+        parsing_hints = self._generate_parsing_hints(cleaned_text, target_value, unit, start_date, end_date, category)
+        
         # 构建目标数据
         goal_data = {
             'title': title,
@@ -80,7 +83,8 @@ class VoiceGoalParser:
             'unit': unit,
             'priority': 'medium',
             'dailyReminder': True,
-            'deadlineReminder': True
+            'deadlineReminder': True,
+            'parsing_hints': parsing_hints  # 添加解析提示
         }
         
         logger.info(f"语音解析完成: {goal_data}")
@@ -110,7 +114,8 @@ class VoiceGoalParser:
     
     def _parse_time_expression(self, text: str) -> Tuple[Optional[datetime], Optional[datetime]]:
         """解析时间表达式"""
-        today = datetime.now()
+        # 使用今天的日期，不包含具体时间
+        today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
         
         for pattern, parser_func in self.time_patterns.items():
             match = re.search(pattern, text)
@@ -203,6 +208,82 @@ class VoiceGoalParser:
         if target_value and unit:
             return f"通过{text}实现目标：{target_value}{unit}"
         return text
+    
+    def _generate_parsing_hints(self, text: str, target_value: str, unit: str, start_date, end_date, category: str) -> Dict[str, Any]:
+        """生成解析提示信息"""
+        hints = {
+            'missing_elements': [],
+            'suggestions': [],
+            'parsing_quality': 'good',
+            'improvement_tips': []
+        }
+        
+        # 检查缺少的元素
+        if not target_value or not unit:
+            hints['missing_elements'].append('明确的数量指标')
+            hints['suggestions'].append('请说出具体的数字和单位，如"减重10斤"、"学习5本书"')
+            hints['improvement_tips'].append('示例：我要减重10斤、我要读5本书、我要跑100公里')
+        
+        # 检查是否有明确的时间期限表达
+        time_deadline_expressions = [
+            '个月内', '周内', '天内', '半年内', '一年内', 
+            '下个月', '下周', '明天',
+            '日前', '前', '截止', '到', '为止',
+            '月前', '号前', '日之前', '月之前',
+            '春节前', '国庆前', '元旦前', '中秋前', '端午前',
+            '年底前', '年初前', '学期前', '假期前',
+            '季度', '这个季度', '下个季度', '季度内', '季度前',
+            '第一季度', '第二季度', '第三季度', '第四季度',
+            'Q1', 'Q2', 'Q3', 'Q4'
+        ]
+        has_time_deadline = any(expr in text for expr in time_deadline_expressions)
+        
+        if not has_time_deadline:
+            hints['missing_elements'].append('明确的时间期限')
+            hints['suggestions'].append('请说出具体的时间范围，如"3个月内"、"半年内"')
+            hints['improvement_tips'].append('示例：3个月内、半年内、下个月、这个季度')
+        
+        if not category or category == '其他':
+            hints['missing_elements'].append('明确的目标类别')
+            hints['suggestions'].append('请说明目标类型，如"健康"、"学习"、"工作"')
+            hints['improvement_tips'].append('示例：健康目标、学习目标、工作目标、生活目标')
+        
+        # 检查文本质量
+        if len(text) < 10:
+            hints['missing_elements'].append('详细的目标描述')
+            hints['suggestions'].append('请提供更详细的目标描述')
+            hints['improvement_tips'].append('示例：我要通过控制饮食和每天跑步30分钟来减重')
+        
+        # 检查模糊词汇
+        vague_words = ['大概', '可能', '也许', '差不多', '左右', '一些', '很多', '不少']
+        if any(word in text for word in vague_words):
+            hints['missing_elements'].append('具体明确的表达')
+            hints['suggestions'].append('请使用更具体的词汇，避免模糊表达')
+            hints['improvement_tips'].append('将"一些"改为具体数字，如"5本"、"10斤"')
+        
+        # 评估解析质量
+        missing_count = len(hints['missing_elements'])
+        if missing_count == 0:
+            hints['parsing_quality'] = 'excellent'
+            hints['suggestions'].append('目标描述非常完整，可以直接创建！')
+        elif missing_count == 1:
+            hints['parsing_quality'] = 'good'
+            hints['suggestions'].append('目标描述基本完整，建议补充缺少的信息')
+        elif missing_count == 2:
+            hints['parsing_quality'] = 'fair'
+            hints['suggestions'].append('目标描述需要完善，建议重新描述')
+        else:
+            hints['parsing_quality'] = 'poor'
+            hints['suggestions'].append('目标描述过于简单，建议提供更详细的信息')
+        
+        # 生成具体的改进建议
+        if hints['missing_elements']:
+            hints['improvement_tips'].extend([
+                '💡 完整示例：我要在3个月内通过控制饮食和每天跑步30分钟减重10斤',
+                '💡 包含要素：具体数字 + 时间期限 + 实现方法 + 目标类别'
+            ])
+        
+        return hints
 
 # 创建全局实例
 voice_goal_parser = VoiceGoalParser()

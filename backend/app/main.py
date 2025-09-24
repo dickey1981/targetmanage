@@ -7,11 +7,11 @@ from fastapi.responses import JSONResponse
 import uvicorn
 from contextlib import asynccontextmanager
 
-from .api import auth, user, goals, records
+from .api import auth, user, goals, records, process_records
 from .config.settings import get_settings
 
 # 导入所有模型以确保它们被正确初始化
-from .models import Base, User, Goal, Task, Progress
+from .models import Base, User, Goal, Task, Progress, ProcessRecord
 
 # 获取配置
 settings = get_settings()
@@ -49,6 +49,7 @@ app.include_router(auth.router, tags=["认证"])
 app.include_router(user.router, tags=["用户"])
 app.include_router(goals.router, tags=["目标"])
 app.include_router(records.router, tags=["记录"])
+app.include_router(process_records.router, tags=["过程记录"])
 
 # 根路径
 @app.get("/")

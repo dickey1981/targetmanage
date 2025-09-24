@@ -11,6 +11,7 @@ from ..database import get_db
 from ..models.user import User
 from ..api.auth import get_current_user
 from ..schemas import GoalCreate, GoalUpdate, GoalItem, GoalResponse, VoiceGoalCreate, VoiceGoalParseResponse, VoiceRecognitionResponse
+from ..models.goal import GoalCategory, GoalPriority
 from ..services.voice_recognition import voice_recognition_service
 from ..utils.voice_parser import voice_goal_parser
 from ..utils.goal_validator import goal_validator
@@ -207,6 +208,8 @@ async def get_today_goals(
                 progress=progress,  # 计算出的进度
                 status=status,  # 计算出的状态
                 remaining_days=remaining_days,  # 计算出的剩余天数
+                startDate=start_date.isoformat() if start_date else None,  # start_date
+                endDate=end_date.isoformat() if end_date else None,        # end_date
                 created_at=goal_row[14].isoformat() if goal_row[14] else None  # created_at
             ))
         
@@ -238,6 +241,8 @@ async def create_goal(
     try:
         print(f"🔍 创建目标 - 用户ID: {current_user.id}")
         print(f"🔍 目标数据: {goal_data}")
+        print(f"🔍 提醒设置详情: dailyReminder={goal_data.dailyReminder}, deadlineReminder={goal_data.deadlineReminder}")
+        print(f"🔍 提醒设置类型: dailyReminder={type(goal_data.dailyReminder)}, deadlineReminder={type(goal_data.deadlineReminder)}")
         
         # 首先确保表存在
         try:
@@ -282,16 +287,32 @@ async def create_goal(
                 # 如果表已存在，检查是否需要添加新列
                 print("🔍 goals表已存在，检查列结构...")
                 try:
-                    # 尝试添加新列（如果不存在的话）
-                    db.execute(text("ALTER TABLE goals ADD COLUMN IF NOT EXISTS start_date DATE"))
-                    db.execute(text("ALTER TABLE goals ADD COLUMN IF NOT EXISTS end_date DATE"))
-                    db.execute(text("ALTER TABLE goals ADD COLUMN IF NOT EXISTS target_value VARCHAR(100)"))
-                    db.execute(text("ALTER TABLE goals ADD COLUMN IF NOT EXISTS current_value VARCHAR(100)"))
-                    db.execute(text("ALTER TABLE goals ADD COLUMN IF NOT EXISTS unit VARCHAR(50)"))
-                    db.execute(text("ALTER TABLE goals ADD COLUMN IF NOT EXISTS daily_reminder BOOLEAN DEFAULT TRUE"))
-                    db.execute(text("ALTER TABLE goals ADD COLUMN IF NOT EXISTS deadline_reminder BOOLEAN DEFAULT TRUE"))
+                    # 检查列是否存在，如果不存在则添加
+                    columns_to_add = [
+                        ("start_date", "DATE"),
+                        ("end_date", "DATE"),
+                        ("target_value", "VARCHAR(100)"),
+                        ("current_value", "VARCHAR(100)"),
+                        ("unit", "VARCHAR(50)"),
+                        ("daily_reminder", "BOOLEAN DEFAULT TRUE"),
+                        ("deadline_reminder", "BOOLEAN DEFAULT TRUE")
+                    ]
+                    
+                    # 获取现有列
+                    result = db.execute(text("SHOW COLUMNS FROM goals"))
+                    existing_columns = [row[0] for row in result.fetchall()]
+                    
+                    # 添加不存在的列
+                    for column_name, column_type in columns_to_add:
+                        if column_name not in existing_columns:
+                            try:
+                                db.execute(text(f"ALTER TABLE goals ADD COLUMN {column_name} {column_type}"))
+                                print(f"✅ 添加列 {column_name}")
+                            except Exception as col_error:
+                                print(f"⚠️ 添加列 {column_name} 失败: {col_error}")
+                    
                     db.commit()
-                    print("✅ goals表结构更新完成")
+                    print("✅ goals表结构检查完成")
                 except Exception as alter_error:
                     print(f"⚠️ 更新表结构时出现警告: {alter_error}")
                     # 继续执行，可能列已经存在
@@ -328,14 +349,28 @@ async def create_goal(
         end_date = None
         if goal_data.startDate:
             try:
-                start_date = datetime.strptime(goal_data.startDate, '%Y-%m-%d').date()
-            except:
+                # 处理多种日期格式
+                date_str = goal_data.startDate
+                if 'T' in date_str:
+                    # ISO格式: 2025-09-02T09:48:47.991844
+                    date_str = date_str.split('T')[0]
+                start_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+                logger.info(f"解析开始日期: {goal_data.startDate} -> {start_date}")
+            except Exception as e:
+                logger.error(f"解析开始日期失败: {goal_data.startDate}, 错误: {e}")
                 start_date = None
         
         if goal_data.endDate:
             try:
-                end_date = datetime.strptime(goal_data.endDate, '%Y-%m-%d').date()
-            except:
+                # 处理多种日期格式
+                date_str = goal_data.endDate
+                if 'T' in date_str:
+                    # ISO格式: 2025-09-02T09:48:47.991844
+                    date_str = date_str.split('T')[0]
+                end_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+                logger.info(f"解析结束日期: {goal_data.endDate} -> {end_date}")
+            except Exception as e:
+                logger.error(f"解析结束日期失败: {goal_data.endDate}, 错误: {e}")
                 end_date = None
         
         # 插入目标数据 - 包含所有前端字段
@@ -367,6 +402,7 @@ async def create_goal(
         db.commit()
         
         print(f"✅ 目标创建成功: {goal_data.title}")
+        print(f"✅ 提醒设置已保存: daily_reminder={goal_data.dailyReminder}, deadline_reminder={goal_data.deadlineReminder}")
         
         # 返回创建的目标数据
         created_goal = {
@@ -552,6 +588,8 @@ async def get_all_goals(
                 progress=progress,  # 计算出的进度
                 status=status,  # 计算出的状态
                 remaining_days=remaining_days,  # 计算出的剩余天数
+                startDate=start_date.isoformat() if start_date else None,  # start_date
+                endDate=end_date.isoformat() if end_date else None,        # end_date
                 created_at=goal_row[14].isoformat() if goal_row[14] else None  # created_at
             ))
         
@@ -632,6 +670,7 @@ def get_goal_detail(goal_id: str, current_user: User = Depends(get_current_user)
         
         goal_row = result.fetchone()
         if not goal_row:
+            print(f"⚠️ 目标不存在: {goal_id}")
             raise HTTPException(status_code=404, detail="目标不存在")
         
         # 构建响应数据
@@ -642,24 +681,29 @@ def get_goal_detail(goal_id: str, current_user: User = Depends(get_current_user)
             "category": goal_row[3],
             "priority": goal_row[4],
             "status": goal_row[5],
-            "targetDate": goal_row[6].isoformat() if goal_row[6] else None,
-            "startDate": goal_row[7].isoformat() if goal_row[7] else None,
-            "endDate": goal_row[8].isoformat() if goal_row[8] else None,
+            "targetDate": goal_row[6].isoformat() if goal_row[6] and hasattr(goal_row[6], 'isoformat') else None,
+            "startDate": goal_row[7].isoformat() if goal_row[7] and hasattr(goal_row[7], 'isoformat') else None,
+            "endDate": goal_row[8].isoformat() if goal_row[8] and hasattr(goal_row[8], 'isoformat') else None,
             "targetValue": goal_row[9],
             "currentValue": goal_row[10],
             "unit": goal_row[11],
             "dailyReminder": goal_row[12],
             "deadlineReminder": goal_row[13],
-            "createdAt": goal_row[14].isoformat() if goal_row[14] else None,
-            "updatedAt": goal_row[15].isoformat() if goal_row[15] else None
+            "createdAt": goal_row[14].isoformat() if goal_row[14] and hasattr(goal_row[14], 'isoformat') else None,
+            "updatedAt": goal_row[15].isoformat() if goal_row[15] and hasattr(goal_row[15], 'isoformat') else None
         }
         
         return goal_data
         
+    except HTTPException:
+        # 重新抛出HTTP异常（如404），不要转换为500
+        raise
     except Exception as e:
         db.rollback()
         logger.error(f"获取目标详情失败: {str(e)}")
-        raise HTTPException(status_code=500, detail="获取目标详情失败")
+        logger.error(f"目标ID: {goal_id}, 用户ID: {current_user.id}")
+        logger.error(f"异常类型: {type(e).__name__}")
+        raise HTTPException(status_code=500, detail=f"获取目标详情失败: {str(e)}")
 
 @router.put("/{goal_id}")
 def update_goal(goal_id: str, goal_data: dict, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -773,6 +817,60 @@ def update_goal(goal_id: str, goal_data: dict, current_user: User = Depends(get_
 
 # ==================== 语音目标创建相关API ====================
 
+@router.post("/test-voice-recognition", response_model=VoiceRecognitionResponse)
+async def test_voice_recognition(
+    audio: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    """测试语音识别API - 不需要认证，用于开发测试"""
+    try:
+        logger.info("🔍 测试语音识别请求")
+        
+        # 检查语音识别服务是否可用
+        if not voice_recognition_service.is_available():
+            raise HTTPException(
+                status_code=503, 
+                detail="语音识别服务暂时不可用，请稍后重试"
+            )
+        
+        # 读取音频文件
+        audio_content = await audio.read()
+        
+        # 检查文件大小 (限制为10MB)
+        if len(audio_content) > 10 * 1024 * 1024:
+            raise HTTPException(
+                status_code=400, 
+                detail="音频文件过大，请控制在10MB以内"
+            )
+        
+        # 获取音频格式
+        audio_format = audio.filename.split('.')[-1].lower() if audio.filename else 'mp3'
+        
+        logger.info(f"🎤 开始识别音频: 格式={audio_format}, 大小={len(audio_content)}字节")
+        
+        # 调用语音识别服务
+        result = await voice_recognition_service.recognize_voice(audio_content, audio_format)
+        
+        if result['success']:
+            logger.info(f"✅ 语音识别成功: {result['text']}")
+            return VoiceRecognitionResponse(
+                success=True,
+                data={"text": result['text']},
+                message="语音识别成功"
+            )
+        else:
+            logger.error(f"❌ 语音识别失败: {result['error']}")
+            raise HTTPException(
+                status_code=400,
+                detail=f"语音识别失败: {result['error']}"
+            )
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"语音识别处理失败: {str(e)}")
+        raise HTTPException(status_code=500, detail="语音识别处理失败")
+
 @router.post("/recognize-voice", response_model=VoiceRecognitionResponse)
 async def recognize_voice(
     audio: UploadFile = File(...),
@@ -830,6 +928,41 @@ async def recognize_voice(
             detail=f"语音识别处理失败: {str(e)}"
         )
 
+@router.post("/test-parse-voice", response_model=VoiceGoalParseResponse)
+async def test_parse_voice_to_goal(
+    voice_data: VoiceGoalCreate,
+    db: Session = Depends(get_db)
+):
+    """测试语音解析API - 不需要认证，用于开发测试"""
+    try:
+        logger.info(f"🔍 测试语音解析请求 - 文本: {voice_data.voice_text}")
+        
+        # 使用语音解析器解析文本
+        parsed_goal = voice_goal_parser.parse_voice_to_goal(voice_data.voice_text)
+        
+        # 验证解析结果
+        validation = goal_validator.validate_goal(parsed_goal)
+        
+        # 提取解析提示信息
+        parsing_hints = parsed_goal.pop('parsing_hints', {})
+        
+        logger.info(f"✅ 语音解析完成 - 评分: {validation['score']}/100")
+        
+        return VoiceGoalParseResponse(
+            success=True,
+            data=parsed_goal,
+            validation=validation,
+            parsing_hints=parsing_hints,
+            message="语音解析成功"
+        )
+        
+    except Exception as e:
+        logger.error(f"语音解析失败: {str(e)}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"语音解析失败: {str(e)}"
+        )
+
 @router.post("/parse-voice", response_model=VoiceGoalParseResponse)
 async def parse_voice_to_goal(
     voice_data: VoiceGoalCreate,
@@ -846,13 +979,17 @@ async def parse_voice_to_goal(
         # 使用目标验证器验证解析结果
         validation_result = goal_validator.validate_goal(parsed_goal)
         
+        # 提取解析提示信息
+        parsing_hints = parsed_goal.pop('parsing_hints', {})
+        
         logger.info(f"✅ 语音解析完成 - 验证评分: {validation_result['score']}")
         
         return VoiceGoalParseResponse(
             success=True,
             message="语音解析成功",
             data=parsed_goal,
-            validation=validation_result
+            validation=validation_result,
+            parsing_hints=parsing_hints
         )
         
     except Exception as e:
@@ -998,3 +1135,140 @@ async def create_goal_from_voice(
             status_code=500, 
             detail=f"语音创建目标失败: {str(e)}"
         )
+
+@router.post("/validate-smart")
+async def validate_goal_smart(
+    goal_data: GoalCreate,
+    current_user: User = Depends(get_current_user)
+):
+    """验证目标是否符合SMART原则"""
+    try:
+        logger.info(f"SMART原则验证请求 - 用户ID: {current_user.id}")
+        logger.info(f"目标数据: {goal_data}")
+        
+        # 将GoalCreate转换为字典格式
+        goal_dict = {
+            'title': goal_data.title,
+            'category': goal_data.category,
+            'description': goal_data.description,
+            'startDate': goal_data.startDate.isoformat() if hasattr(goal_data.startDate, 'isoformat') else goal_data.startDate,
+            'endDate': goal_data.endDate.isoformat() if hasattr(goal_data.endDate, 'isoformat') else goal_data.endDate,
+            'targetValue': goal_data.targetValue,
+            'currentValue': goal_data.currentValue,
+            'unit': goal_data.unit,
+            'priority': goal_data.priority,
+            'dailyReminder': goal_data.dailyReminder,
+            'deadlineReminder': goal_data.deadlineReminder
+        }
+        
+        # 执行SMART原则验证
+        validation_result = goal_validator.validate_goal(goal_dict)
+        
+        return {
+            "success": True,
+            "data": validation_result,
+            "message": "SMART原则验证完成"
+        }
+        
+    except Exception as e:
+        logger.error(f"SMART原则验证失败: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"SMART原则验证失败: {str(e)}"
+        )
+
+@router.post("/test-validate-smart")
+async def test_validate_goal_smart(
+    goal_data: GoalCreate,
+    db: Session = Depends(get_db)
+):
+    """测试SMART原则验证API - 不需要认证，用于开发测试"""
+    try:
+        logger.info(f"测试SMART原则验证请求: {goal_data.title}")
+        
+        # 将GoalCreate转换为字典格式
+        goal_dict = {
+            'title': goal_data.title,
+            'category': goal_data.category,
+            'description': goal_data.description,
+            'startDate': goal_data.startDate.isoformat() if hasattr(goal_data.startDate, 'isoformat') else goal_data.startDate,
+            'endDate': goal_data.endDate.isoformat() if hasattr(goal_data.endDate, 'isoformat') else goal_data.endDate,
+            'targetValue': goal_data.targetValue,
+            'currentValue': goal_data.currentValue,
+            'unit': goal_data.unit,
+            'priority': goal_data.priority,
+            'dailyReminder': goal_data.dailyReminder,
+            'deadlineReminder': goal_data.deadlineReminder
+        }
+        
+        # 执行SMART原则验证
+        validation_result = goal_validator.validate_goal(goal_dict)
+        
+        return {
+            "success": True,
+            "data": validation_result,
+            "message": "SMART原则验证完成"
+        }
+        
+    except Exception as e:
+        logger.error(f"测试SMART原则验证失败: {e}")
+        return {
+            "success": False,
+            "data": None,
+            "message": f"SMART原则验证失败: {str(e)}"
+        }
+
+@router.delete("/{goal_id}")
+def delete_goal(goal_id: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """删除指定目标"""
+    try:
+        logger.info(f"🗑️ 删除目标请求 - 目标ID: {goal_id}, 用户ID: {current_user.id}")
+        
+        # 检查目标是否存在且属于当前用户
+        result = db.execute(text("""
+            SELECT id, title FROM goals 
+            WHERE id = :goal_id AND user_id = :user_id
+        """), {
+            "goal_id": goal_id,
+            "user_id": current_user.id
+        })
+        
+        goal = result.fetchone()
+        if not goal:
+            logger.warning(f"❌ 目标不存在或无权访问 - 目标ID: {goal_id}")
+            raise HTTPException(status_code=404, detail="目标不存在或无权访问")
+        
+        logger.info(f"✅ 找到目标: {goal.title}")
+        
+        # 直接删除目标
+        db.execute(text("""
+            DELETE FROM goals 
+            WHERE id = :goal_id AND user_id = :user_id
+        """), {
+            "goal_id": goal_id,
+            "user_id": current_user.id
+        })
+        
+        # 删除相关的过程记录
+        db.execute(text("""
+            DELETE FROM process_records 
+            WHERE goal_id = :goal_id AND user_id = :user_id
+        """), {
+            "goal_id": goal_id,
+            "user_id": current_user.id
+        })
+        
+        db.commit()
+        
+        logger.info(f"✅ 目标删除成功 - 目标ID: {goal_id}")
+        return {
+            "success": True,
+            "message": "目标删除成功"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        logger.error(f"❌ 删除目标失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"删除目标失败: {str(e)}")

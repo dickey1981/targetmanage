@@ -7,7 +7,8 @@
     "pages/profile/profile",
     "pages/goal-detail/goal-detail",
     "pages/process-record/process-record",
-    "pages/create-goal/create-goal"
+    "pages/create-goal/create-goal",
+    "pages/record-detail/record-detail"
   ],
   "window": {
     "backgroundTextStyle": "light",
@@ -57,6 +58,18 @@
   "permission": {
     "scope.userLocation": {
       "desc": "用于获取位置信息，提供更好的服务体验"
+    },
+    "scope.userInfo": {
+      "desc": "用于获取用户信息，提供个性化服务"
+    },
+    "scope.record": {
+      "desc": "用于语音记录功能，提供语音输入服务"
+    },
+    "scope.camera": {
+      "desc": "用于拍照记录功能，自动识别数据"
+    },
+    "scope.writePhotosAlbum": {
+      "desc": "用于保存图片到相册"
     }
   },
   "requiredBackgroundModes": ["audio"],

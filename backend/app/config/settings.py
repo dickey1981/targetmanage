@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     # 数据库配置（使用同一个数据库）
     # 生产环境：腾讯云LightDB MySQL 5.7 (外网访问)
     DATABASE_URL: str = "mysql+pymysql://root:targetM123@sh-cynosdbmysql-grp-hocwbafo.sql.tencentcdb.com:26153/targetmanage"
-    DATABASE_TEST_URL: str = "mysql+pymysql://root:targetM123@sh-cynosdbmysql-grp-hocwbafo.sql.tencentcdb.com:26153/targetmanage"
+    DATABASE_TEST_URL: str = "mysql+pymysql://root:tartgetM123@sh-cynosdbmysql-grp-hocwbafo.sql.tencentcdb.com:26153/targetmanage"
     
     # 本地开发数据库配置（可选）
     LOCAL_DATABASE_URL: str = "mysql+pymysql://root:password@localhost:3306/targetmanage"
@@ -65,6 +65,10 @@ class Settings(BaseSettings):
     TENCENT_SECRET_ID: str = ""
     TENCENT_SECRET_KEY: str = ""
     TENCENT_REGION: str = "ap-beijing"
+    TENCENT_ASR_REGION: str = "ap-shanghai"
+    
+    # 语音识别开发模式配置
+    ASR_DEV_MODE: bool = False
     
     # 腾讯云COS配置
     COS_BUCKET_NAME: str = ""

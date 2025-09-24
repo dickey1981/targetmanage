@@ -48,35 +48,26 @@ class Goal(BaseModel):
     # 基本信息
     title = Column(String(200), nullable=False, comment="目标标题")
     description = Column(Text, nullable=True, comment="目标描述")
-    category = Column(Enum(GoalCategory), default=GoalCategory.PERSONAL, comment="目标分类")
-    priority = Column(Enum(GoalPriority), default=GoalPriority.MEDIUM, comment="优先级")
-    status = Column(Enum(GoalStatus), default=GoalStatus.DRAFT, comment="状态")
+    category = Column(String(50), default="personal", comment="目标分类")
+    priority = Column(String(20), default="medium", comment="优先级")
+    status = Column(String(20), default="draft", comment="状态")
     
     # 时间相关
     start_date = Column(DateTime, nullable=True, comment="开始时间")
     end_date = Column(DateTime, nullable=True, comment="截止时间")
-    estimated_hours = Column(Float, nullable=True, comment="预估工时")
+    target_date = Column(DateTime, nullable=True, comment="目标日期")
     
-    # 进度相关
-    progress_percentage = Column(Float, default=0.0, comment="完成百分比")
-    is_completed = Column(Boolean, default=False, comment="是否完成")
-    completed_at = Column(DateTime, nullable=True, comment="完成时间")
-    
-    # 目标设置
-    is_public = Column(Boolean, default=False, comment="是否公开")
-    allow_collaboration = Column(Boolean, default=False, comment="是否允许协作")
+    # 目标值相关
+    target_value = Column(String(100), nullable=True, comment="目标值")
+    current_value = Column(String(100), nullable=True, comment="当前值")
+    unit = Column(String(50), nullable=True, comment="单位")
     
     # 提醒设置
-    reminder_enabled = Column(Boolean, default=True, comment="是否启用提醒")
-    reminder_frequency = Column(String(20), default="daily", comment="提醒频率")
+    daily_reminder = Column(Boolean, default=True, comment="每日提醒")
+    deadline_reminder = Column(Boolean, default=True, comment="截止提醒")
     
     # 关联字段
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, comment="用户ID")
-    parent_goal_id = Column(Integer, ForeignKey("goals.id"), nullable=True, comment="父目标ID")
-    
-    # 统计字段
-    total_tasks = Column(Integer, default=0, comment="总任务数")
-    completed_tasks = Column(Integer, default=0, comment="已完成任务数")
+    user_id = Column(String(36), nullable=False, comment="用户ID")
     
     # 关联关系 - 暂时简化，只保留必要的
     # user = relationship("User", back_populates="goals", lazy="select")

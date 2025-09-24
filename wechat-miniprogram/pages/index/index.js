@@ -7,6 +7,7 @@ Page({
     userInfo: null,
     showLoginModal: false,
     isLoggingIn: false,
+    userPhoneNumber: '',
     todayGoals: [],
     completedGoalsCount: 0,
     pendingGoalsCount: 0,
@@ -14,6 +15,13 @@ Page({
     isRecording: false,
     recordingText: '按住说话',
     voiceHint: '松开结束',
+    // 创建目标弹窗
+    showCreateGoalModal: false,
+    // 语音识别结果弹窗
+    showVoiceResultModal: false,
+    voiceRecognizedText: '',
+    voiceInstructionType: '',
+    voiceConfidence: 0,
     // 问候语
     greetingText: '早上好',
     // 快捷操作
@@ -28,6 +36,18 @@ Page({
     this.checkLoginStatus()
     this.loadTodayGoals()
     this.updateGreeting()
+    
+    // 添加测试数据
+    this.setData({
+      todayGoals: [
+        { id: 1, title: '学习新技能', progress: 44, completed: false },
+        { id: 2, title: '健身锻炼', progress: 25, completed: false },
+        { id: 3, title: '阅读书籍', progress: 80, completed: false },
+        { id: 4, title: '项目开发', progress: 60, completed: false }
+      ],
+      completedGoalsCount: 2,
+      pendingGoalsCount: 2
+    })
     
     // 调试信息
     console.log('页面加载 - 环境配置信息:')
@@ -76,7 +96,8 @@ Page({
     } else {
       this.setData({
         isLoggedIn: false,
-        userInfo: null
+        userInfo: null,
+        showLoginModal: true  // 未登录时直接显示授权弹窗
       })
     }
   },
@@ -115,24 +136,154 @@ Page({
   },
 
   // 获取微信用户信息
-  onGetUserInfo(e) {
-    if (e.detail.userInfo) {
-      this.setData({
-        userInfo: e.detail.userInfo
+  // 授权按钮点击调试
+  onAuthButtonTap(e) {
+    console.log('🔘 授权按钮被点击:', e)
+    console.log('按钮类型:', e.currentTarget.dataset)
+    
+    // 检查微信环境
+    const systemInfo = wx.getSystemInfoSync()
+    console.log('系统信息:', systemInfo)
+    
+    // 检查是否支持手机号授权
+    if (wx.getPhoneNumber) {
+      console.log('✅ 支持 getPhoneNumber API')
+    } else {
+      console.log('❌ 不支持 getPhoneNumber API')
+      wx.showModal({
+        title: '提示',
+        content: '当前环境不支持手机号授权，请在微信中打开',
+        showCancel: false
+      })
+    }
+  },
+
+  // 获取手机号授权
+  onGetPhoneNumber(e) {
+    console.log('📱 手机号授权结果:', e.detail)
+    console.log('授权事件详情:', JSON.stringify(e.detail, null, 2))
+    
+    // 检查是否有错误信息
+    if (e.detail.errMsg) {
+      console.log('授权错误信息:', e.detail.errMsg)
+      
+      if (e.detail.errMsg.includes('deny') || e.detail.errMsg.includes('cancel')) {
+        // 用户拒绝授权
+        console.log('用户拒绝手机号授权')
+        wx.showToast({
+          title: '需要手机号授权才能使用完整功能',
+          icon: 'none',
+          duration: 3000
+        })
+        return
+      } else if (e.detail.errMsg.includes('fail')) {
+        // 授权失败
+        console.log('手机号授权失败')
+        wx.showToast({
+          title: '授权失败，请重试',
+          icon: 'none'
+        })
+        return
+      }
+    }
+    
+    if (e.detail.code) {
+      console.log('✅ 获取到手机号授权码:', e.detail.code)
+      
+      // 显示授权成功提示
+      wx.showLoading({
+        title: '正在登录...'
       })
       
-      // 先获取微信登录code，然后调用登录接口
-      this.loginWithWeChat(e.detail.userInfo)
+      this.setData({
+        isLoggingIn: true
+      })
+      
+      // 调用登录接口
+      this.loginWithWeChat(e.detail.code)
     } else {
+      console.log('❌ 未获取到授权码')
       wx.showToast({
-        title: '需要授权才能使用',
+        title: '授权失败，请重试',
         icon: 'none'
       })
     }
   },
 
+  // 拒绝授权
+  denyAuth() {
+    console.log('用户选择暂不授权')
+    
+    wx.showModal({
+      title: '授权提示',
+      content: '授权手机号可以获得更好的使用体验，包括目标同步、数据备份等功能。',
+      confirmText: '重新授权',
+      cancelText: '暂不使用',
+      success: (res) => {
+        if (res.confirm) {
+          // 用户选择重新授权，保持弹窗显示
+          console.log('用户选择重新授权')
+        } else {
+          // 用户选择暂不使用，关闭弹窗
+          this.setData({
+            showLoginModal: false
+          })
+          wx.showToast({
+            title: '部分功能将受限',
+            icon: 'none'
+          })
+        }
+      }
+    })
+  },
+
+  // 获取用户信息授权（备用方案）
+  onGetUserInfo(e) {
+    console.log('👤 用户信息授权结果:', e.detail)
+    
+    if (e.detail.userInfo) {
+      console.log('✅ 获取到用户信息:', e.detail.userInfo)
+      
+      // 显示授权成功提示
+      wx.showLoading({
+        title: '正在登录...'
+      })
+      
+      this.setData({
+        isLoggingIn: true
+      })
+      
+      // 使用用户信息进行登录（不包含手机号）
+      this.loginWithWeChat(null, e.detail.userInfo)
+    } else {
+      console.log('❌ 用户拒绝授权')
+      wx.showToast({
+        title: '需要授权才能使用完整功能',
+        icon: 'none'
+      })
+    }
+  },
+
+  // 使用其他方式登录
+  useOtherPhone() {
+    wx.showModal({
+      title: '其他登录方式',
+      content: '目前支持微信授权登录，请选择上方的授权方式完成登录。',
+      confirmText: '去授权',
+      cancelText: '取消',
+      success: (res) => {
+        if (res.confirm) {
+          // 用户选择去授权，保持弹窗显示
+          console.log('引导用户进行授权')
+        }
+      }
+    })
+  },
+
   // 使用微信信息登录/注册
-  loginWithWeChat(userInfo) {
+  loginWithWeChat(phoneCode, userInfo) {
+    console.log('🔐 开始登录流程，手机号授权码:', phoneCode, '用户信息:', userInfo)
+    
     this.setData({
       isLoggingIn: true
     })
@@ -141,9 +292,12 @@ Page({
     wx.login({
       success: (loginRes) => {
         if (loginRes.code) {
+          console.log('✅ 获取微信登录code成功:', loginRes.code)
           // 获取到code后，发送给后端
-          this.sendLoginRequest(loginRes.code, userInfo)
+          this.sendLoginRequest(loginRes.code, phoneCode, userInfo)
         } else {
+          console.error('❌ 获取微信登录code失败')
+          wx.hideLoading()
           wx.showToast({
             title: '获取登录凭证失败',
             icon: 'none'
@@ -154,7 +308,8 @@ Page({
         }
       },
       fail: (err) => {
-        console.error('wx.login失败:', err)
+        console.error('❌ wx.login失败:', err)
+        wx.hideLoading()
         wx.showToast({
           title: '微信登录失败',
           icon: 'none'
@@ -167,21 +322,33 @@ Page({
   },
 
   // 发送登录请求到后端
-  sendLoginRequest(code, userInfo) {
+  sendLoginRequest(code, phoneCode, userInfo) {
     // 调试信息
     const apiUrl = `${app.globalData.baseUrl}/api/auth/wechat-login`
-    console.log('API地址:', apiUrl)
-    console.log('全局baseUrl:', app.globalData.baseUrl)
+    console.log('📡 发送登录请求到:', apiUrl)
     console.log('微信code:', code)
+    console.log('手机号授权码:', phoneCode)
     console.log('用户信息:', userInfo)
+
+    // 构建请求数据
+    const requestData = {
+      code: code
+    }
+    
+    // 如果有手机号授权码，添加到请求中
+    if (phoneCode) {
+      requestData.phoneCode = phoneCode
+    }
+    
+    // 如果有用户信息，添加到请求中
+    if (userInfo) {
+      requestData.userInfo = userInfo
+    }
 
     wx.request({
       url: apiUrl,
       method: 'POST',
-      data: {
-        code: code,
-        userInfo: userInfo
-      },
+      data: requestData,
       success: (res) => {
         console.log('登录响应:', res)
         console.log('响应数据:', res.data)
@@ -211,6 +378,9 @@ Page({
           app.globalData.token = token
           app.globalData.userInfo = user
           app.globalData.isLoggedIn = true
+          
+          // 隐藏加载状态
+          wx.hideLoading()
           
           this.setData({
             isLoggedIn: true,
@@ -317,30 +487,133 @@ Page({
       return
     }
     
-    this.setData({
-      isRecording: true,
-      recordingText: '正在录音...',
-      voiceHint: '松开结束录音'
-    })
-    
-    // TODO: 调用微信录音API
-    wx.showToast({
-      title: '开始录音',
-      icon: 'none'
-    })
-    
-    // 模拟录音状态
-    this.recordingTimer = setInterval(() => {
+    // 检查录音权限
+    this.checkRecordPermission().then(() => {
       this.setData({
-        voiceHint: '正在录音...'
+        isRecording: true,
+        recordingText: '正在录音...',
+        voiceHint: '松开结束录音'
       })
-    }, 1000)
+      
+      // 开始录音
+      const recorderManager = wx.getRecorderManager()
+      
+      recorderManager.onStart(() => {
+        console.log('录音开始')
+        wx.showToast({
+          title: '开始录音',
+          icon: 'none'
+        })
+      })
+      
+      recorderManager.onError((err) => {
+        console.error('录音错误:', err)
+        this.handleRecordError(err)
+      })
+      
+      // 开始录音
+      recorderManager.start({
+        duration: 60000, // 最长60秒
+        sampleRate: 16000, // 16k采样率
+        numberOfChannels: 1, // 单声道
+        encodeBitRate: 96000, // 编码码率
+        format: 'mp3' // 格式
+      })
+      
+      // 保存录音管理器引用
+      this.recorderManager = recorderManager
+    }).catch((error) => {
+      console.error('录音权限检查失败:', error)
+      wx.showToast({
+        title: '录音权限不足',
+        icon: 'none'
+      })
+    })
+  },
+
+  // 检查录音权限
+  checkRecordPermission() {
+    return new Promise((resolve, reject) => {
+      wx.getSetting({
+        success: (res) => {
+          if (res.authSetting['scope.record'] === false) {
+            // 用户拒绝了录音权限，引导用户手动开启
+            wx.showModal({
+              title: '需要录音权限',
+              content: '语音功能需要录音权限，请在设置中开启',
+              confirmText: '去设置',
+              cancelText: '取消',
+              success: (modalRes) => {
+                if (modalRes.confirm) {
+                  wx.openSetting({
+                    success: (settingRes) => {
+                      if (settingRes.authSetting['scope.record']) {
+                        resolve()
+                      } else {
+                        reject(new Error('用户拒绝授权录音权限'))
+                      }
+                    },
+                    fail: () => {
+                      reject(new Error('打开设置失败'))
+                    }
+                  })
+                } else {
+                  reject(new Error('用户取消授权'))
+                }
+              }
+            })
+          } else if (res.authSetting['scope.record'] === undefined) {
+            // 首次使用，请求权限
+            wx.authorize({
+              scope: 'scope.record',
+              success: () => {
+                resolve()
+              },
+              fail: () => {
+                reject(new Error('用户拒绝授权录音权限'))
+              }
+            })
+          } else {
+            // 已授权
+            resolve()
+          }
+        },
+        fail: () => {
+          reject(new Error('获取设置失败'))
+        }
+      })
+    })
+  },
+
+  // 处理录音错误
+  handleRecordError(err) {
+    let errorMessage = '录音失败'
+    
+    if (err.errMsg.includes('NotFoundError')) {
+      errorMessage = '录音功能不可用，请检查设备'
+    } else if (err.errMsg.includes('NotAllowedError')) {
+      errorMessage = '录音权限被拒绝，请在设置中开启'
+    } else if (err.errMsg.includes('NotSupportedError')) {
+      errorMessage = '设备不支持录音功能'
+    } else if (err.errMsg.includes('AbortError')) {
+      errorMessage = '录音被中断'
+    }
+    
+    wx.showToast({
+      title: errorMessage,
+      icon: 'none',
+      duration: 3000
+    })
+    
+    this.setData({
+      isRecording: false,
+      recordingText: '按住说话',
+      voiceHint: '松开结束'
+    })
   },
 
   stopVoiceRecord() {
     if (!this.data.isRecording) return
-    
-    clearInterval(this.recordingTimer)
     
     this.setData({
       isRecording: false,
@@ -348,36 +621,336 @@ Page({
       voiceHint: '请稍候'
     })
     
-    // TODO: 调用语音识别API
-    wx.showToast({
-      title: '录音完成，正在识别...',
-      icon: 'none'
+    // 停止录音
+    if (this.recorderManager) {
+      this.recorderManager.stop()
+    }
+    
+    // 监听录音结束
+    this.recorderManager.onStop((res) => {
+      console.log('录音结束:', res)
+      this.processVoiceRecord(res.tempFilePath)
+    })
+  },
+
+  // 处理录音文件
+  processVoiceRecord(tempFilePath) {
+    console.log('处理录音文件:', tempFilePath)
+    
+    // 显示加载提示
+    wx.showLoading({
+      title: '正在识别语音...',
+      mask: true
     })
     
-    // 模拟语音识别过程
-    setTimeout(() => {
-      this.setData({
-        recordingText: '按住说话',
-        voiceHint: '松开结束'
-      })
-      
-      // 显示识别结果示例
-      wx.showModal({
-        title: '语音识别结果',
-        content: '识别到："今天跑了5公里，用时30分钟"\n是否更新运动目标？',
-        confirmText: '确认更新',
-        cancelText: '重新录音',
-        success: (res) => {
-          if (res.confirm) {
-            // TODO: 调用后端API更新目标进度
+    // 上传录音文件到后端进行识别
+    wx.uploadFile({
+      url: `${app.globalData.baseUrl}/api/goals/recognize-voice`,
+      filePath: tempFilePath,
+      name: 'audio',
+      header: {
+        'Authorization': `Bearer ${wx.getStorageSync('token')}`
+      },
+      success: (res) => {
+        wx.hideLoading()
+        console.log('语音识别响应:', res)
+        
+        try {
+          const data = JSON.parse(res.data)
+          if (data.success) {
+            const recognizedText = data.data.text
+            this.handleVoiceRecognitionResult(recognizedText)
+          } else {
             wx.showToast({
-              title: '进度更新成功！',
-              icon: 'success'
+              title: data.message || '语音识别失败',
+              icon: 'none'
             })
           }
+        } catch (e) {
+          console.error('解析响应失败:', e)
+          wx.showToast({
+            title: '语音识别失败',
+            icon: 'none'
+          })
         }
-      })
-    }, 2000)
+      },
+      fail: (err) => {
+        wx.hideLoading()
+        console.error('语音识别请求失败:', err)
+        wx.showToast({
+          title: '网络错误，请重试',
+          icon: 'none'
+        })
+      },
+      complete: () => {
+        this.setData({
+          recordingText: '按住说话',
+          voiceHint: '松开结束'
+        })
+      }
+    })
+  },
+
+  // 处理语音识别结果
+  handleVoiceRecognitionResult(recognizedText) {
+    console.log('语音识别结果:', recognizedText)
+    
+    // 智能判断语音指令类型
+    const instructionType = this.analyzeVoiceInstruction(recognizedText)
+    console.log('语音指令类型:', instructionType)
+    
+    // 显示语音识别结果弹窗
+    this.showVoiceResultModal(recognizedText, instructionType)
+  },
+
+  // 显示语音识别结果弹窗
+  showVoiceResultModal(recognizedText, instructionType) {
+    this.setData({
+      showVoiceResultModal: true,
+      voiceRecognizedText: recognizedText,
+      voiceInstructionType: instructionType.type,
+      voiceConfidence: instructionType.confidence
+    })
+  },
+
+  // 隐藏语音识别结果弹窗
+  hideVoiceResultModal() {
+    this.setData({
+      showVoiceResultModal: false,
+      voiceRecognizedText: '',
+      voiceInstructionType: '',
+      voiceConfidence: 0
+    })
+  },
+
+  // 分析语音指令类型
+  analyzeVoiceInstruction(text) {
+    const createKeywords = ['我要', '我想', '计划', '目标', '创建', '设定', '开始']
+    const updateKeywords = ['完成', '跑了', '读了', '做了', '达到', '实现', '今天']
+    const recordKeywords = ['感觉', '发现', '遇到', '困难', '方法', '收获', '总结']
+    const queryKeywords = ['情况', '进展', '如何', '怎样', '状态', '进度']
+    
+    if (createKeywords.some(keyword => text.includes(keyword))) {
+      return { type: 'create_goal', confidence: 0.8 }
+    } else if (updateKeywords.some(keyword => text.includes(keyword))) {
+      return { type: 'update_progress', confidence: 0.7 }
+    } else if (recordKeywords.some(keyword => text.includes(keyword))) {
+      return { type: 'process_record', confidence: 0.6 }
+    } else if (queryKeywords.some(keyword => text.includes(keyword))) {
+      return { type: 'query_status', confidence: 0.5 }
+    } else {
+      return { type: 'unknown', confidence: 0.3 }
+    }
+  },
+
+  // 创建目标按钮点击
+  createGoalFromVoice() {
+    const voiceText = this.data.voiceRecognizedText
+    
+    // 隐藏语音识别结果弹窗
+    this.hideVoiceResultModal()
+    
+    // 跳转到目标创建确认页
+    wx.navigateTo({
+      url: `/pages/create-goal/create-goal?voiceResult=${encodeURIComponent(voiceText)}`,
+      success: () => {
+        console.log('跳转到目标创建页面成功')
+      },
+      fail: (err) => {
+        console.error('跳转失败:', err)
+        wx.showToast({
+          title: '页面跳转失败',
+          icon: 'none'
+        })
+      }
+    })
+  },
+
+  // 创建记录按钮点击
+  createRecordFromVoice() {
+    const voiceText = this.data.voiceRecognizedText
+    
+    // 隐藏语音识别结果弹窗
+    this.hideVoiceResultModal()
+    
+    // 跳转到记录创建确认页
+    wx.navigateTo({
+      url: `/pages/process-record/process-record?voiceText=${encodeURIComponent(voiceText)}`,
+      success: () => {
+        console.log('跳转到记录创建页面成功')
+      },
+      fail: (err) => {
+        console.error('跳转失败:', err)
+        wx.showToast({
+          title: '页面跳转失败',
+          icon: 'none'
+        })
+      }
+    })
+  },
+
+  // 处理进度更新
+  handleProgressUpdate(voiceText) {
+    wx.showModal({
+      title: '更新进度',
+      content: `识别到："${voiceText}"\n是否更新目标进度？`,
+      confirmText: '更新进度',
+      cancelText: '重新录音',
+      success: (res) => {
+        if (res.confirm) {
+          this.updateGoalProgress(voiceText)
+        } else {
+          // 用户选择重新录音，重新显示语音创建弹窗
+          this.setData({
+            recordingText: '按住说话',
+            voiceHint: '松开结束'
+          })
+          // 重新显示语音创建弹窗
+          this.showCreateGoalModal()
+        }
+      }
+    })
+  },
+
+  // 处理过程记录
+  handleProcessRecord(voiceText) {
+    wx.showModal({
+      title: '记录过程',
+      content: `识别到："${voiceText}"\n是否记录为过程内容？`,
+      confirmText: '记录过程',
+      cancelText: '重新录音',
+      success: (res) => {
+        if (res.confirm) {
+          this.recordProcess(voiceText)
+        } else {
+          // 用户选择重新录音，重新显示语音创建弹窗
+          this.setData({
+            recordingText: '按住说话',
+            voiceHint: '松开结束'
+          })
+          // 重新显示语音创建弹窗
+          this.showCreateGoalModal()
+        }
+      }
+    })
+  },
+
+  // 处理状态查询
+  handleStatusQuery(voiceText) {
+    // 跳转到目标管理页面
+    wx.switchTab({
+      url: '/pages/goals/goals',
+      success: () => {
+        wx.showToast({
+          title: '已跳转到目标管理',
+          icon: 'none'
+        })
+      }
+    })
+  },
+
+  // 处理未知指令
+  handleUnknownInstruction(voiceText) {
+    wx.showModal({
+      title: '语音识别',
+      content: `识别到："${voiceText}"\n请选择操作类型：`,
+      confirmText: '创建目标',
+      cancelText: '重新录音',
+      success: (res) => {
+        if (res.confirm) {
+          this.handleGoalCreation(voiceText)
+        } else {
+          // 用户选择重新录音，重新显示语音创建弹窗
+          this.setData({
+            recordingText: '按住说话',
+            voiceHint: '松开结束'
+          })
+          // 重新显示语音创建弹窗
+          this.showCreateGoalModal()
+        }
+      }
+    })
+  },
+
+  // 更新目标进度
+  updateGoalProgress(voiceText) {
+    // TODO: 实现进度更新逻辑
+    wx.showToast({
+      title: '进度更新功能开发中',
+      icon: 'none'
+    })
+  },
+
+  // 记录过程
+  recordProcess(voiceText) {
+    // TODO: 实现过程记录逻辑
+    wx.showToast({
+      title: '过程记录功能开发中',
+      icon: 'none'
+    })
+  },
+
+  // 判断是否为目标创建
+  isGoalCreation(text) {
+    const creationKeywords = ['我要', '我想', '计划', '目标', '创建', '设定']
+    return creationKeywords.some(keyword => text.includes(keyword))
+  },
+
+  // 处理目标创建
+  handleGoalCreation(voiceText) {
+    wx.showModal({
+      title: '创建新目标',
+      content: `识别到："${voiceText}"\n是否创建新目标？`,
+      confirmText: '创建目标',
+      cancelText: '重新录音',
+      success: (res) => {
+        if (res.confirm) {
+          this.createGoalFromVoice(voiceText)
+        } else {
+          // 用户选择重新录音，重新显示语音创建弹窗
+          this.setData({
+            recordingText: '按住说话',
+            voiceHint: '松开结束'
+          })
+          // 重新显示语音创建弹窗
+          this.showCreateGoalModal()
+        }
+      }
+    })
+  },
+
+  // 处理进度更新
+  handleProgressUpdate(voiceText) {
+    wx.showModal({
+      title: '更新目标进度',
+      content: `识别到："${voiceText}"\n是否更新目标进度？`,
+      confirmText: '确认更新',
+      cancelText: '重新录音',
+      success: (res) => {
+        if (res.confirm) {
+          this.updateGoalProgress(voiceText)
+        } else {
+          // 用户选择重新录音，重新显示语音创建弹窗
+          this.setData({
+            recordingText: '按住说话',
+            voiceHint: '松开结束'
+          })
+          // 重新显示语音创建弹窗
+          this.showCreateGoalModal()
+        }
+      }
+    })
+  },
+
+
+
+  // 更新目标进度
+  updateGoalProgress(voiceText) {
+    // TODO: 实现进度更新逻辑
+    wx.showToast({
+      title: '进度更新功能开发中',
+      icon: 'none'
+    })
   },
 
   // 快捷操作
@@ -421,31 +994,35 @@ Page({
   // 创建目标
   createGoal() {
     // 检查用户是否已登录
-    if (!app.globalData.userInfo) {
-      wx.showToast({
-        title: '请先登录',
-        icon: 'none'
-      })
+    if (!this.data.isLoggedIn) {
+      this.showLoginModal()
       return
     }
 
-    console.log('用户已登录，跳转到目标管理页面')
-    // 设置全局标志，表示要显示语音创建弹窗
-    app.globalData.showCreateGoalModal = true
-    
-    // 跳转到目标管理页面（tab页面）
-    wx.switchTab({
-      url: '/pages/goals/goals',
-      success: () => {
-        console.log('跳转成功')
-      },
-      fail: (err) => {
-        console.error('跳转失败:', err)
-        wx.showToast({
-          title: '页面跳转失败',
-          icon: 'none'
-        })
-      }
+    console.log('用户已登录，显示语音创建弹窗')
+    this.setData({
+      showCreateGoalModal: true
+    })
+  },
+
+  // 显示创建目标弹窗
+  showCreateGoalModal() {
+    // 检查用户是否已登录
+    if (!this.data.isLoggedIn) {
+      this.showLoginModal()
+      return
+    }
+
+    console.log('显示语音创建目标弹窗')
+    this.setData({
+      showCreateGoalModal: true
+    })
+  },
+
+  // 隐藏创建目标弹窗
+  hideCreateGoalModal() {
+    this.setData({
+      showCreateGoalModal: false
     })
   },
 
@@ -474,6 +1051,20 @@ Page({
     const goalId = e.currentTarget.dataset.goalId
     wx.navigateTo({
       url: `/pages/goal-detail/goal-detail?id=${goalId}`
+    })
+  },
+
+  // 图片加载成功
+  onImageLoad(e) {
+    console.log('图片加载成功:', e)
+  },
+
+  // 图片加载失败
+  onImageError(e) {
+    console.log('图片加载失败:', e)
+    wx.showToast({
+      title: '图片加载失败',
+      icon: 'none'
     })
   }
 })

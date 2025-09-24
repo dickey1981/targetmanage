@@ -1,242 +1,46 @@
-/* Home page styles */
+/* 首页样式 - 严格按照图片设计 */
 .container {
-  min-height: 100vh;
+  height: 100vh;
   background: #ffffff;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.header-section {
-  height: 20vh;
-  background: #ffffff;
-  padding: 20rpx 30rpx;
-  border-bottom: 1rpx solid #f0f0f0;
-}
-
-.user-greeting {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.greeting-text {
-  margin-bottom: 20rpx;
-}
-
-.greeting {
-  font-size: 32rpx;
-  color: #666;
-  margin-right: 10rpx;
-}
-
-.username {
-  font-size: 36rpx;
-  font-weight: 600;
-  color: #333;
-}
-
-.today-overview {
-  display: flex;
-  gap: 30rpx;
-}
-
-.overview-item {
-  font-size: 28rpx;
-  color: #666;
-  background: #f8f9fa;
-  padding: 8rpx 16rpx;
-  border-radius: 20rpx;
-}
-
-/* 核心交互区 - 语音按钮 (35%屏幕高度) */
-.voice-interaction-section {
-  height: 35vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #fafbfc;
-}
-
-.voice-button-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.voice-button {
-  width: 300rpx;
-  height: 300rpx;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #00B4D8 0%, #0077B6 100%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 8rpx 32rpx rgba(0, 180, 216, 0.3);
-  transition: all 0.3s ease;
-  position: relative;
+  padding: 40rpx 30rpx 0;
   overflow: hidden;
 }
 
-.voice-button.recording {
-  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
-  transform: scale(1.1);
-  box-shadow: 0 12rpx 40rpx rgba(255, 107, 107, 0.4);
-}
-
-.voice-button.recording::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
-  transform: translate(-50%, -50%) scale(0);
-  animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-  0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
-  100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
-}
-
-.voice-icon {
-  margin-bottom: 8rpx;
-}
-
-.voice-icon .icon {
-  font-size: 80rpx;
-  color: #ffffff;
-}
-
-.voice-text {
-  text-align: center;
-  width: 100%;
-  padding: 0 20rpx;
-  box-sizing: border-box;
-}
-
-.voice-text .main-text {
-  display: block;
-  font-size: 28rpx;
-  color: #ffffff;
-  font-weight: 500;
-  margin-bottom: 6rpx;
-  line-height: 1.2;
-  word-break: break-all;
-}
-
-.voice-text .sub-text {
-  display: block;
-  font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.8);
-  line-height: 1.2;
-  word-break: break-all;
-}
-
-/* 快捷操作区 (20%屏幕高度) */
-.quick-actions-section {
-  height: 20vh;
-  background: #ffffff;
-  padding: 20rpx 30rpx;
-}
-
-.quick-actions {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  height: 100%;
-}
-
-.action-item {
+/* 今日目标区域 */
+.today-goals-section {
+  margin-bottom: 40rpx;
+  max-height: 200rpx;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 20rpx;
-  border-radius: 16rpx;
-  transition: all 0.3s ease;
-}
-
-.action-item:active {
-  transform: scale(0.95);
-  background: #f8f9fa;
-}
-
-.action-icon {
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: 16rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 12rpx;
-  font-size: 40rpx;
-}
-
-.photo-icon {
-  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-}
-
-.create-icon {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.sync-icon {
-  background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
-}
-
-.action-text {
-  font-size: 24rpx;
-  color: #666;
-  text-align: center;
-}
-
-/* 今日目标区 (25%屏幕高度) */
-.today-goals-section {
-  height: 25vh;
-  background: #ffffff;
-  padding: 20rpx 30rpx;
-  border-top: 1rpx solid #f0f0f0;
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20rpx;
 }
 
 .section-title {
   font-size: 32rpx;
-  font-weight: 600;
+  font-weight: 700;
   color: #333;
+  margin-bottom: 12rpx;
+  display: block;
 }
 
-.section-more {
-  font-size: 28rpx;
-  color: #00B4D8;
-}
-
-.goals-container {
-  height: calc(100% - 60rpx);
-  overflow-x: auto;
-  white-space: nowrap;
+.goals-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10rpx;
+  flex: 1;
 }
 
 .goal-card {
-  display: inline-block;
-  width: 300rpx;
-  height: 100%;
-  background: #f8f9fa;
+  background: #ffffff;
   border-radius: 16rpx;
-  padding: 20rpx;
-  margin-right: 20rpx;
-  border: 1rpx solid #e9ecef;
+  padding: 16rpx;
+  position: relative;
   transition: all 0.3s ease;
+  border: none;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 96rpx;
 }
 
 .goal-card:active {
@@ -244,96 +48,107 @@
   background: #e9ecef;
 }
 
-.goal-header {
+.goal-status-icon {
+  position: absolute;
+  top: 16rpx;
+  right: 16rpx;
+}
+
+.status-icon {
+  width: 32rpx;
+  height: 32rpx;
+  border-radius: 50%;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 16rpx;
+  justify-content: center;
+  background: #ffffff;
 }
 
-.goal-category {
-  font-size: 22rpx;
-  padding: 4rpx 12rpx;
-  border-radius: 12rpx;
-  background: #e3f2fd;
-  color: #1976d2;
+.status-icon.completed {
+  background: #007bff;
 }
 
-.goal-category.work {
-  background: #e8f5e8;
-  color: #2e7d32;
+.status-icon.pending {
+  background: #e9ecef;
 }
 
-.goal-category.study {
-  background: #fff3e0;
-  color: #f57c00;
+.status-symbol {
+  font-size: 20rpx;
+  font-weight: bold;
+  color: #ffffff;
 }
 
-.goal-category.health {
-  background: #fce4ec;
-  color: #c2185b;
+.goal-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  flex: 1;
 }
 
-.goal-category.life {
-  background: #f3e5f5;
-  color: #7b1fa2;
+.goal-progress-section {
+  display: flex;
+  align-items: center;
+  margin-top: 16rpx;
 }
 
-.goal-status {
-  font-size: 22rpx;
-  padding: 4rpx 12rpx;
-  border-radius: 12rpx;
+.goal-text-section {
+  display: flex;
+  flex-direction: column;
+  margin-left: 12rpx;
 }
 
-.goal-status.in-progress {
-  background: #fff3e0;
-  color: #f57c00;
+.progress-ring {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%;
+  border: 5rpx solid #e9ecef;
+  border-top: 5rpx solid #4CAF50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+  transform: rotate(calc(var(--progress) * 3.6deg - 90deg));
 }
 
-.goal-status.completed {
-  background: #e8f5e8;
-  color: #2e7d32;
+.progress-ring::before {
+  content: '';
+  position: absolute;
+  width: 46rpx;
+  height: 46rpx;
+  border-radius: 50%;
+  background: #ffffff;
+}
+
+.goal-percentage {
+  font-size: 24rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 4rpx;
 }
 
 .goal-title {
   font-size: 28rpx;
+  font-weight: bold;
   color: #333;
-  margin-bottom: 20rpx;
-  white-space: normal;
-  line-height: 1.4;
-  height: 80rpx;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  text-align: left;
+  line-height: 1.2;
+  margin-bottom: 8rpx;
 }
 
-.goal-progress {
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
-}
-
-.progress-bar {
-  flex: 1;
-  height: 8rpx;
-  background: #e9ecef;
-  border-radius: 4rpx;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #00B4D8 0%, #0077B6 100%);
-  border-radius: 4rpx;
-  transition: width 0.3s ease;
-}
-
-.progress-text {
-  font-size: 24rpx;
+.goal-status-text {
+  font-size: 20rpx;
+  text-align: left;
+  font-weight: 400;
   color: #666;
-  min-width: 60rpx;
-  text-align: right;
+}
+
+.goal-status-text.completed {
+  color: #28a745;
+}
+
+.goal-status-text.pending {
+  color: #6c757d;
 }
 
 .empty-goals {
@@ -341,21 +156,312 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
-  color: #999;
+  padding: 80rpx 20rpx;
+  text-align: center;
+  grid-column: 1 / -1;
 }
 
 .empty-text {
-  font-size: 28rpx;
-  margin-bottom: 8rpx;
+  font-size: 36rpx;
+  color: #666;
+  margin-bottom: 16rpx;
+  font-weight: 500;
 }
 
 .empty-hint {
-  font-size: 24rpx;
-  color: #ccc;
+  font-size: 28rpx;
+  color: #999;
+  line-height: 1.4;
 }
 
-.login-modal {
+/* 核心操作区域 */
+.core-actions-section {
+  margin-top: 260rpx;
+  margin-bottom: 40rpx;
+}
+
+.core-actions-title {
+  margin-top: 50rpx;
+}
+
+.core-actions {
+  display: flex;
+  justify-content: space-around;
+  gap: 30rpx;
+  margin-top: 30rpx;
+}
+
+.core-action-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.action-icon {
+  width: 150rpx;
+  height: 150rpx;
+  border-radius: 30rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20rpx;
+  transition: all 0.3s ease;
+  background: #f8f9fa;
+  border: 1rpx solid #e9ecef;
+}
+
+.action-icon:active {
+  transform: scale(0.95);
+  background: #e9ecef;
+}
+
+.action-symbol {
+  width: 120rpx;
+  height: 120rpx;
+  display: block;
+}
+
+.action-text {
+  font-size: 28rpx;
+  color: #666;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* 语音输入区域 */
+.voice-input-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: fixed;
+  bottom: 20rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  padding: 0 30rpx;
+  z-index: 100;
+}
+
+.voice-icon-container {
+  margin-bottom: 20rpx;
+  position: relative;
+}
+
+.voice-icon {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+  display: block;
+}
+
+.voice-icon.recording {
+  transform: scale(1.1);
+  animation: voice-pulse 1s infinite;
+}
+
+@keyframes voice-pulse {
+  0% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+.pulse-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 160rpx;
+  height: 160rpx;
+  border: 2rpx solid #007bff;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: pulse-ring 2s infinite;
+}
+
+.pulse-ring.delay-1 {
+  animation-delay: 0.5s;
+}
+
+.pulse-ring.delay-2 {
+  animation-delay: 1s;
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.5);
+    opacity: 0;
+  }
+}
+
+.voice-button {
+  width: 600rpx;
+  height: 100rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 8rpx 24rpx rgba(102, 126, 234, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.voice-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.voice-button:active::before {
+  left: 100%;
+}
+
+.voice-button.recording {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  box-shadow: 0 8rpx 24rpx rgba(0, 123, 255, 0.4);
+  transform: scale(1.02);
+}
+
+.voice-button:active {
+  transform: scale(0.95);
+}
+
+.voice-button-text {
+  font-size: 36rpx;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* 创建目标弹窗样式 */
+.create-goal-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.create-goal-modal .modal-content {
+  width: 600rpx;
+  background: #ffffff;
+  border-radius: 24rpx;
+  padding: 40rpx;
+}
+
+.create-goal-modal .modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 40rpx;
+}
+
+.create-goal-modal .modal-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.create-goal-modal .close-btn {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%;
+  background: #f5f5f5;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  font-weight: bold;
+}
+
+.create-goal-modal .voice-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40rpx;
+}
+
+.create-goal-modal .voice-button {
+  width: 300rpx;
+  height: 300rpx;
+  border-radius: 50%;
+  background: #f8f9fa;
+  border: 3rpx solid #e9ecef;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.create-goal-modal .voice-button.recording {
+  background: #007bff;
+  border-color: #007bff;
+  transform: scale(1.05);
+}
+
+.create-goal-modal .voice-icon {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+}
+
+.create-goal-modal .main-text {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.create-goal-modal .voice-button.recording .main-text {
+  color: #ffffff;
+}
+
+.create-goal-modal .sub-text {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.create-goal-modal .voice-button.recording .sub-text {
+  color: #ffffff;
+}
+
+.create-goal-modal .voice-tip {
+  text-align: center;
+}
+
+.create-goal-modal .tip-text {
+  font-size: 28rpx;
+  color: #666;
+  line-height: 1.5;
+  display: block;
+  margin-bottom: 10rpx;
+}
+
+/* 语音识别结果弹窗样式 */
+.voice-result-modal {
   position: fixed;
   top: 0;
   left: 0;
@@ -368,59 +474,288 @@
   z-index: 1000;
 }
 
-.modal-content {
-  width: 600rpx;
+.voice-result-modal .modal-content {
+  width: 90%;
+  max-width: 600rpx;
   background: #ffffff;
-  border-radius: 24rpx;
+  border-radius: 20rpx;
   padding: 40rpx;
-  text-align: center;
+  box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.3);
 }
 
-.modal-header {
-  margin-bottom: 40rpx;
+.voice-result-modal .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30rpx;
+  padding-bottom: 20rpx;
+  border-bottom: 1rpx solid #f0f0f0;
 }
 
-.modal-title {
-  display: block;
+.voice-result-modal .modal-title {
   font-size: 36rpx;
   font-weight: 600;
   color: #333;
-  margin-bottom: 16rpx;
 }
 
-.modal-subtitle {
-  display: block;
-  font-size: 28rpx;
+.voice-result-modal .close-btn {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%;
+  background: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
   color: #666;
 }
 
-.auth-section {
+/* 识别内容显示 */
+.voice-result-content {
   margin-bottom: 40rpx;
 }
 
-.auth-btn.wechat-auth {
-  width: 100%;
-  height: 88rpx;
-  background: linear-gradient(135deg, #07c160 0%, #00a854 100%);
-  border: none;
-  border-radius: 44rpx;
-  color: #ffffff;
-  font-size: 32rpx;
-  font-weight: 500;
-  box-shadow: 0 8rpx 24rpx rgba(7, 193, 96, 0.3);
+.result-text-section {
+  margin-bottom: 20rpx;
 }
 
-.auth-btn.wechat-auth:active {
+.result-label {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 10rpx;
+  display: block;
+}
+
+.result-text {
+  font-size: 32rpx;
+  color: #333;
+  line-height: 1.6;
+  background: #f8f9fa;
+  padding: 20rpx;
+  border-radius: 12rpx;
+  border-left: 4rpx solid #007bff;
+}
+
+/* 操作按钮 */
+.voice-action-buttons {
+  display: flex;
+  gap: 20rpx;
+  margin-bottom: 30rpx;
+}
+
+.action-btn {
+  flex: 1;
+  height: 80rpx;
+  border-radius: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10rpx;
+  border: none;
+  font-size: 28rpx;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.create-goal-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #ffffff;
+}
+
+.create-record-btn {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: #ffffff;
+}
+
+.action-btn:active {
+  transform: scale(0.95);
+}
+
+.btn-icon {
+  font-size: 32rpx;
+}
+
+.btn-text {
+  font-size: 28rpx;
+}
+
+/* 重新录音按钮 */
+.retry-section {
+  text-align: center;
+}
+
+.retry-btn {
+  background: transparent;
+  border: 2rpx solid #e9ecef;
+  color: #666;
+  padding: 16rpx 32rpx;
+  border-radius: 30rpx;
+  font-size: 26rpx;
+}
+
+.retry-btn:active {
+  background: #f8f9fa;
+}
+
+/* 登录弹窗样式 */
+.login-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  width: 600rpx;
+  background: #2c2c2c;
+  border-radius: 24rpx;
+  padding: 40rpx;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 40rpx;
+}
+
+.app-info {
+  display: flex;
+  align-items: center;
+}
+
+.app-icon {
+  width: 60rpx;
+  height: 60rpx;
+  margin-right: 20rpx;
+}
+
+.app-name {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.info-icon {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  background: #666;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  font-weight: bold;
+}
+
+.auth-request {
+  margin-bottom: 40rpx;
+}
+
+.request-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #ffffff;
+  display: block;
+  margin-bottom: 16rpx;
+}
+
+.request-desc {
+  font-size: 28rpx;
+  color: #cccccc;
+  line-height: 1.4;
+}
+
+.phone-auth-section {
+  margin-bottom: 40rpx;
+}
+
+.auth-description {
+  margin-bottom: 30rpx;
+  text-align: center;
+}
+
+.auth-hint {
+  font-size: 28rpx;
+  color: #cccccc;
+}
+
+.phone-auth-btn {
+  width: 100%;
+  height: 80rpx;
+  border: none;
+  border-radius: 12rpx;
+  margin-bottom: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+.phone-auth-btn.primary {
+  background: #007bff;
+  color: #ffffff;
+}
+
+.phone-auth-btn.primary:active {
+  background: #0056b3;
   transform: scale(0.98);
 }
 
-.legal-text {
-  font-size: 24rpx;
-  color: #999;
-  line-height: 1.5;
+.phone-auth-btn.secondary {
+  background: #3c3c3c;
+  color: #ffffff;
 }
 
-.legal-text .link {
-  color: #00B4D8;
+.phone-auth-btn.secondary:active {
+  background: #2a2a2a;
+  transform: scale(0.98);
+}
+
+.phone-auth-btn.fallback {
+  background: #28a745;
+  color: #ffffff;
+  margin-top: 10rpx;
+}
+
+.phone-auth-btn.fallback:active {
+  background: #1e7e34;
+  transform: scale(0.98);
+}
+
+.btn-text {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: inherit;
+}
+
+.auth-options {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.deny-btn {
+  width: 100%;
+  height: 80rpx;
+  background: #3c3c3c;
+  border: none;
+  border-radius: 12rpx;
+  color: #ffffff;
+  font-size: 28rpx;
+  margin-bottom: 20rpx;
+}
+
+.other-phone {
+  font-size: 28rpx;
+  color: #ffffff;
   text-decoration: underline;
 }

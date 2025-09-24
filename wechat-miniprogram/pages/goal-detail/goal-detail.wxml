@@ -11,11 +11,29 @@
     </view>
   </view>
 
-  <!-- 目标基本信息 -->
-  <view class="goal-info">
-    <view class="info-header">
-      <text class="goal-title">{{isEditing ? '编辑目标' : '目标信息'}}</text>
+  <!-- 标签页导航 -->
+  <view class="tab-nav">
+    <view class="tab-item {{selectedTab === 'overview' ? 'active' : ''}}" 
+          bindtap="switchTab" data-tab="overview">
+      <text class="tab-text">概览</text>
     </view>
+    <view class="tab-item {{selectedTab === 'records' ? 'active' : ''}}" 
+          bindtap="switchTab" data-tab="records">
+      <text class="tab-text">记录</text>
+    </view>
+    <view class="tab-item {{selectedTab === 'analytics' ? 'active' : ''}}" 
+          bindtap="switchTab" data-tab="analytics">
+      <text class="tab-text">分析</text>
+    </view>
+  </view>
+
+  <!-- 概览标签页 -->
+  <view class="tab-content" wx:if="{{selectedTab === 'overview'}}">
+    <!-- 目标基本信息 -->
+    <view class="goal-info">
+      <view class="info-header">
+        <text class="goal-title">{{isEditing ? '编辑目标' : '目标信息'}}</text>
+      </view>
     
     <!-- 目标标题 -->
     <view class="info-section">
@@ -77,33 +95,33 @@
     <!-- 时间设置 -->
     <view class="info-section">
       <text class="section-title">时间设置</text>
-      <view class="time-inputs">
-        <view class="time-input">
-          <text class="time-label">开始时间</text>
+      <view class="time-inputs-horizontal">
+        <view class="time-input-horizontal">
+          <text class="time-label-horizontal">开始时间</text>
           <picker wx:if="{{isEditing}}" 
                   mode="date" 
                   value="{{goalData.startDate}}" 
                   bindchange="onStartDateChange">
-            <view class="picker-display">
-              <text class="picker-text">{{goalData.startDate || '请选择开始时间'}}</text>
-              <text class="picker-arrow">▼</text>
+            <view class="picker-display-horizontal">
+              <text class="picker-text-horizontal">{{goalData.startDate || '请选择'}}</text>
+              <text class="picker-arrow-horizontal">▼</text>
             </view>
           </picker>
-          <text wx:else class="info-text">{{goalData.startDate || '未设置'}}</text>
+          <text wx:else class="info-text-horizontal">{{goalData.startDate || '未设置'}}</text>
         </view>
         
-        <view class="time-input">
-          <text class="time-label">结束时间</text>
+        <view class="time-input-horizontal">
+          <text class="time-label-horizontal">结束时间</text>
           <picker wx:if="{{isEditing}}" 
                   mode="date" 
                   value="{{goalData.endDate}}" 
                   bindchange="onEndDateChange">
-            <view class="picker-display">
-              <text class="picker-text">{{goalData.endDate || '请选择结束时间'}}</text>
-              <text class="picker-arrow">▼</text>
+            <view class="picker-display-horizontal">
+              <text class="picker-text-horizontal">{{goalData.endDate || '请选择'}}</text>
+              <text class="picker-arrow-horizontal">▼</text>
             </view>
           </picker>
-          <text wx:else class="info-text">{{goalData.endDate || '未设置'}}</text>
+          <text wx:else class="info-text-horizontal">{{goalData.endDate || '未设置'}}</text>
         </view>
       </view>
     </view>
@@ -111,35 +129,35 @@
     <!-- 量化指标 -->
     <view class="info-section">
       <text class="section-title">量化指标</text>
-      <view class="quantification-inputs">
-        <view class="quant-input">
-          <text class="quant-label">目标值</text>
+      <view class="quantification-inputs-horizontal">
+        <view class="quant-input-horizontal">
+          <text class="quant-label-horizontal">目标值</text>
           <input wx:if="{{isEditing}}" 
-                 class="value-input" 
+                 class="value-input-horizontal" 
                  value="{{goalData.targetValue}}" 
                  bindinput="onTargetValueChange"
                  placeholder="目标值" />
-          <text wx:else class="info-text">{{goalData.targetValue || '未设置'}}</text>
+          <text wx:else class="info-text-horizontal">{{goalData.targetValue || '未设置'}}</text>
         </view>
         
-        <view class="quant-input">
-          <text class="quant-label">当前值</text>
+        <view class="quant-input-horizontal">
+          <text class="quant-label-horizontal">当前值</text>
           <input wx:if="{{isEditing}}" 
-                 class="value-input" 
+                 class="value-input-horizontal" 
                  value="{{goalData.currentValue}}" 
                  bindinput="onCurrentValueChange"
                  placeholder="当前值" />
-          <text wx:else class="info-text">{{goalData.currentValue || '未设置'}}</text>
+          <text wx:else class="info-text-horizontal">{{goalData.currentValue || '未设置'}}</text>
         </view>
         
-        <view class="quant-input">
-          <text class="quant-label">单位</text>
+        <view class="quant-input-horizontal">
+          <text class="quant-label-horizontal">单位</text>
           <input wx:if="{{isEditing}}" 
-                 class="unit-input" 
+                 class="unit-input-horizontal" 
                  value="{{goalData.unit}}" 
                  bindinput="onUnitChange"
                  placeholder="单位" />
-          <text wx:else class="info-text">{{goalData.unit || '未设置'}}</text>
+          <text wx:else class="info-text-horizontal">{{goalData.unit || '未设置'}}</text>
         </view>
       </view>
     </view>
@@ -215,8 +233,205 @@
     </view>
   </view>
 
-  <!-- 编辑模式下的保存按钮 -->
-  <view class="save-section" wx:if="{{isEditing}}">
+  <!-- 编辑模式下的保存按钮 - 已隐藏，通过顶部完成按钮控制 -->
+  <!-- <view class="save-section" wx:if="{{isEditing}}">
     <button class="save-btn" bindtap="saveChanges">保存修改</button>
+  </view> -->
+
+
+  <!-- 最近过程记录 -->
+  <view class="recent-records" wx:if="{{!isEditing && recentRecords.length > 0}}">
+    <view class="section-header">
+      <text class="section-title">最近记录</text>
+      <text class="view-all" bindtap="goToTimeline">查看全部</text>
+    </view>
+    <view class="record-list">
+      <view class="record-item" 
+            wx:for="{{recentRecords}}" 
+            wx:key="id"
+            bindtap="viewRecordDetail"
+            data-record="{{item}}">
+        <view class="record-header">
+          <view class="record-type {{item.record_type}}">
+            <text class="type-icon">{{getTypeIcon(item.record_type)}}</text>
+            <text class="type-name">{{getTypeName(item.record_type)}}</text>
+          </view>
+          <text class="record-time">{{formatTime(item.recorded_at)}}</text>
+        </view>
+        <text class="record-content">{{item.content}}</text>
+        <view class="record-tags" wx:if="{{item.tags && item.tags.length > 0}}">
+          <text class="tag" wx:for="{{item.tags}}" wx:key="*this">{{item}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+  </view>
+
+  <!-- 记录标签页 -->
+  <view class="tab-content" wx:if="{{selectedTab === 'records'}}">
+    <!-- 快速记录操作 -->
+    <view class="quick-record-actions">
+      <view class="action-title">快速记录</view>
+      <view class="action-buttons">
+        <button class="action-btn voice-btn" bindtap="showVoiceRecordModal">
+          <text class="btn-icon">🎤</text>
+          <text class="btn-text">语音记录</text>
+        </button>
+        <button class="action-btn progress-btn" bindtap="showProgressUpdateModal">
+          <text class="btn-icon">📈</text>
+          <text class="btn-text">更新进度</text>
+        </button>
+      </view>
+    </view>
+
+    <!-- 过程记录列表 -->
+    <view class="records-list">
+      <view class="section-header">
+        <text class="section-title">过程记录</text>
+      </view>
+      <view class="record-list" wx:if="{{recentRecords.length > 0}}">
+        <view class="record-item" 
+              wx:for="{{recentRecords}}" 
+              wx:key="id"
+              bindtap="viewRecordDetail"
+              data-record="{{item}}">
+          <view class="record-header">
+            <view class="record-type {{item.record_type}}">
+              <text class="type-icon">{{getTypeIcon(item.record_type)}}</text>
+              <text class="type-name">{{getTypeName(item.record_type)}}</text>
+            </view>
+            <text class="record-time">{{formatTime(item.recorded_at)}}</text>
+          </view>
+          <text class="record-content">{{item.content}}</text>
+          <view class="record-tags" wx:if="{{item.tags && item.tags.length > 0}}">
+            <text class="tag" wx:for="{{item.tags}}" wx:key="*this">{{item}}</text>
+          </view>
+        </view>
+      </view>
+      <view class="empty-records" wx:else>
+        <text class="empty-icon">📝</text>
+        <text class="empty-text">还没有过程记录</text>
+        <text class="empty-subtitle">开始记录你的目标实现过程</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 分析标签页 -->
+  <view class="tab-content" wx:if="{{selectedTab === 'analytics'}}">
+    <!-- 进度分析 -->
+    <view class="analytics-section">
+      <view class="section-header">
+        <text class="section-title">进度分析</text>
+      </view>
+      
+      <!-- 进度统计 -->
+      <view class="progress-stats">
+        <view class="stat-item">
+          <text class="stat-number">{{progressPercentage}}%</text>
+          <text class="stat-label">完成进度</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-number">{{goalData.remaining_days || 0}}</text>
+          <text class="stat-label">剩余天数</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-number">{{recentRecords.length}}</text>
+          <text class="stat-label">记录数量</text>
+        </view>
+      </view>
+
+      <!-- 进度图表 -->
+      <view class="chart-section" wx:if="{{showChart}}">
+        <view class="chart-title">进度趋势</view>
+        <view class="chart-placeholder">
+          <text class="chart-text">📊 进度图表</text>
+          <text class="chart-subtitle">显示目标完成进度的时间线</text>
+        </view>
+      </view>
+
+      <!-- 记录类型分布 -->
+      <view class="record-type-distribution">
+        <view class="section-title">记录类型分布</view>
+        <view class="distribution-list">
+          <view class="distribution-item" wx:for="{{chartData}}" wx:key="type">
+            <view class="type-info">
+              <text class="type-icon">{{getTypeIcon(item.type)}}</text>
+              <text class="type-name">{{getTypeName(item.type)}}</text>
+            </view>
+            <view class="type-count">
+              <text class="count-number">{{item.count}}</text>
+              <text class="count-label">条</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 语音记录弹窗 -->
+  <view class="voice-modal" wx:if="{{showVoiceModal}}">
+    <view class="modal-content">
+      <view class="modal-header">
+        <text class="modal-title">语音记录</text>
+        <view class="close-btn" bindtap="hideVoiceRecordModal">✕</view>
+      </view>
+      
+      <view class="voice-section">
+        <view class="{{voiceButtonClass}}"
+              bindtouchstart="startVoiceRecord"
+              bindtouchend="stopVoiceRecord">
+          <view class="voice-icon">🎤</view>
+          <text class="main-text">{{recordingText}}</text>
+          <text class="sub-text">{{voiceHint}}</text>
+        </view>
+      </view>
+      
+      <view class="voice-tip">
+        <text class="tip-text">按住说话，松开结束录音</text>
+        <text class="tip-text">语音将自动识别并添加为过程记录</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 进度更新弹窗 -->
+  <view class="progress-modal" wx:if="{{showProgressModal}}">
+    <view class="modal-content">
+      <view class="modal-header">
+        <text class="modal-title">更新进度</text>
+        <view class="close-btn" bindtap="hideProgressUpdateModal">✕</view>
+      </view>
+      
+      <view class="form-section">
+        <view class="form-item">
+          <text class="form-label">当前进度值</text>
+          <input class="form-input" 
+                 type="number" 
+                 value="{{progressValue}}" 
+                 bindinput="onProgressValueChange"
+                 placeholder="请输入当前进度值" />
+        </view>
+        
+        <view class="form-item">
+          <text class="form-label">备注说明</text>
+          <textarea class="form-textarea" 
+                    value="{{progressNote}}" 
+                    bindinput="onProgressNoteChange"
+                    placeholder="可选：添加进度说明"></textarea>
+        </view>
+      </view>
+      
+      <view class="modal-actions">
+        <button class="btn btn-secondary" bindtap="hideProgressUpdateModal">取消</button>
+        <button class="btn btn-primary" bindtap="submitProgressUpdate">提交</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 删除按钮区域 - 只在非编辑模式下显示 -->
+  <view class="delete-section" wx:if="{{!isEditing}}">
+    <button class="delete-btn" bindtap="deleteGoal">
+      <text class="delete-icon">🗑️</text>
+      <text class="delete-text">删除目标</text>
+    </button>
   </view>
 </view>

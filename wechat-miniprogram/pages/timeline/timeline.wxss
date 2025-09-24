@@ -1,64 +1,380 @@
-/* pages/timeline/timeline.wxss */
-.timeline-container {
+/* 时间线页面样式 */
+.container {
+  padding: 20rpx;
+  background-color: #f8f9fa;
   min-height: 100vh;
-  background: #ffffff;
-  padding: 40rpx;
-  text-align: center;
 }
 
-.timeline-title {
-  font-size: 36rpx;
-  font-weight: bold;
-  color: #333;
+/* 筛选器 */
+.filter-section {
+  background-color: white;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+.filter-tabs {
+  display: flex;
+  gap: 10rpx;
   margin-bottom: 20rpx;
 }
 
-.timeline-subtitle {
-  font-size: 28rpx;
-  color: #666;
-  margin-bottom: 40rpx;
+.filter-tab {
+  flex: 1;
+  text-align: center;
+  padding: 15rpx;
+  border-radius: 20rpx;
+  background-color: #f0f0f0;
+  transition: all 0.3s ease;
 }
 
-.timeline-content {
-  background: #f8f9fa;
+.filter-tab.active {
+  background-color: #007aff;
+  color: white;
+}
+
+.filter-tab text {
+  font-size: 26rpx;
+}
+
+.time-range {
+  display: flex;
+  justify-content: center;
+}
+
+.picker-text {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  padding: 10rpx 20rpx;
+  background-color: #f8f9fa;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  color: #666;
+}
+
+.picker-arrow {
+  font-size: 20rpx;
+}
+
+/* 统计概览 */
+.stats-section {
+  margin-bottom: 20rpx;
+}
+
+.stats-card {
+  background-color: white;
   border-radius: 16rpx;
   padding: 30rpx;
-  margin-top: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.stat-number {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #007aff;
+  margin-bottom: 8rpx;
+}
+
+.stat-label {
+  font-size: 22rpx;
+  color: #666;
+}
+
+/* 时间线 */
+.timeline-section {
+  margin-bottom: 20rpx;
+}
+
+.timeline-container {
+  background-color: white;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
 }
 
 .timeline-item {
-  display: flex;
-  align-items: center;
-  padding: 20rpx 0;
-  border-bottom: 1rpx solid #eee;
+  margin-bottom: 40rpx;
 }
 
 .timeline-item:last-child {
-  border-bottom: none;
+  margin-bottom: 0;
 }
 
-.timeline-icon {
-  width: 40rpx;
-  height: 40rpx;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #00B4D8 0%, #0096C7 100%);
+/* 日期标题 */
+.date-header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 20rpx;
-  margin-right: 20rpx;
+  margin-bottom: 20rpx;
 }
 
-.timeline-text {
+.date-line {
   flex: 1;
-  text-align: left;
-  font-size: 28rpx;
+  height: 2rpx;
+  background-color: #e0e0e0;
+}
+
+.date-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 15rpx 25rpx;
+  background-color: #007aff;
+  border-radius: 25rpx;
+  margin: 0 20rpx;
+}
+
+.date-text {
+  font-size: 24rpx;
+  color: white;
+  font-weight: bold;
+}
+
+.date-count {
+  font-size: 20rpx;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 4rpx;
+}
+
+/* 记录卡片 */
+.records-container {
+  margin-left: 20rpx;
+}
+
+.record-card {
+  background-color: #f8f9fa;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  margin-bottom: 15rpx;
+  border-left: 4rpx solid #e0e0e0;
+  transition: all 0.3s ease;
+}
+
+.record-card.important {
+  border-left-color: #ff9800;
+  background-color: #fff3e0;
+}
+
+.record-card.milestone {
+  border-left-color: #4caf50;
+  background-color: #e8f5e8;
+}
+
+.record-card.breakthrough {
+  border-left-color: #9c27b0;
+  background-color: #f3e5f5;
+}
+
+.record-card.progress {
+  border-left-color: #2196f3;
+}
+
+.record-card.difficulty {
+  border-left-color: #f44336;
+}
+
+.record-card.method {
+  border-left-color: #ff9800;
+}
+
+.record-card.reflection {
+  border-left-color: #607d8b;
+}
+
+.record-card.achievement {
+  border-left-color: #4caf50;
+}
+
+.record-card.insight {
+  border-left-color: #9c27b0;
+}
+
+/* 记录头部 */
+.record-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15rpx;
+}
+
+.record-type-badge {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 6rpx 12rpx;
+  border-radius: 12rpx;
+  background-color: #e3f2fd;
+}
+
+.record-type-badge.progress {
+  background-color: #e3f2fd;
+}
+
+.record-type-badge.difficulty {
+  background-color: #ffebee;
+}
+
+.record-type-badge.method {
+  background-color: #fff3e0;
+}
+
+.record-type-badge.reflection {
+  background-color: #eceff1;
+}
+
+.record-type-badge.achievement {
+  background-color: #e8f5e8;
+}
+
+.record-type-badge.insight {
+  background-color: #f3e5f5;
+}
+
+.type-icon {
+  font-size: 20rpx;
+}
+
+.type-name {
+  font-size: 22rpx;
   color: #333;
 }
 
-.timeline-time {
+.record-time {
+  font-size: 20rpx;
+  color: #999;
+}
+
+/* 记录内容 */
+.record-content {
+  margin-bottom: 15rpx;
+}
+
+.content-text {
+  font-size: 26rpx;
+  color: #333;
+  line-height: 1.6;
+}
+
+/* 记录标签 */
+.record-tags {
+  display: flex;
+  gap: 10rpx;
+  flex-wrap: wrap;
+  margin-bottom: 15rpx;
+}
+
+.tag {
+  font-size: 20rpx;
+  color: #666;
+  background-color: #e0e0e0;
+  padding: 4rpx 8rpx;
+  border-radius: 8rpx;
+}
+
+/* 记录状态 */
+.record-status {
+  display: flex;
+  gap: 20rpx;
+  margin-bottom: 15rpx;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+}
+
+.status-icon {
+  font-size: 20rpx;
+}
+
+.status-icon.positive {
+  color: #4caf50;
+}
+
+.status-icon.negative {
+  color: #f44336;
+}
+
+.status-icon.neutral {
+  color: #ff9800;
+}
+
+.status-text {
+  font-size: 20rpx;
+  color: #666;
+}
+
+/* 重要标记 */
+.record-marks {
+  display: flex;
+  gap: 15rpx;
+  flex-wrap: wrap;
+}
+
+.mark {
+  font-size: 20rpx;
+  color: #ff9800;
+  background-color: #fff3e0;
+  padding: 4rpx 8rpx;
+  border-radius: 8rpx;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 80rpx 40rpx;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+}
+
+.empty-text {
+  font-size: 32rpx;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.empty-hint {
   font-size: 24rpx;
   color: #999;
-  margin-left: 20rpx;
+  margin-bottom: 30rpx;
+}
+
+.empty-btn {
+  background-color: #007aff;
+  color: white;
+  border-radius: 25rpx;
+  padding: 15rpx 30rpx;
+  font-size: 26rpx;
+  border: none;
+}
+
+/* 加载更多 */
+.load-more {
+  display: flex;
+  justify-content: center;
+  padding: 20rpx;
+}
+
+.load-more-btn {
+  background-color: #f0f0f0;
+  color: #666;
+  border-radius: 25rpx;
+  padding: 15rpx 30rpx;
+  font-size: 26rpx;
+  border: none;
 }

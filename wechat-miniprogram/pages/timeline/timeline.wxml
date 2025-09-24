@@ -1,4 +1,152 @@
-<!--pages/timeline/timeline.wxml-->
-<view class="timeline-container">
-  <text>时间线页面 - 开发中</text>
+<!-- 时间线页面 -->
+<view class="container">
+  <!-- 顶部筛选器 -->
+  <view class="filter-section">
+    <view class="filter-tabs">
+      <view class="filter-tab {{activeFilter === 'all' ? 'active' : ''}}"
+            bindtap="setFilter"
+            data-filter="all">
+        <text>全部</text>
+      </view>
+      <view class="filter-tab {{activeFilter === 'progress' ? 'active' : ''}}"
+            bindtap="setFilter"
+            data-filter="progress">
+        <text>进度</text>
+      </view>
+      <view class="filter-tab {{activeFilter === 'milestone' ? 'active' : ''}}"
+            bindtap="setFilter"
+            data-filter="milestone">
+        <text>里程碑</text>
+      </view>
+      <view class="filter-tab {{activeFilter === 'difficulty' ? 'active' : ''}}"
+            bindtap="setFilter"
+            data-filter="difficulty">
+        <text>困难</text>
+      </view>
+    </view>
+    
+    <view class="time-range">
+      <picker mode="selector" 
+              range="{{timeRanges}}" 
+              range-key="name"
+              value="{{timeRangeIndex}}"
+              bindchange="onTimeRangeChange">
+        <view class="picker-text">
+          <text>{{timeRanges[timeRangeIndex].name}}</text>
+          <text class="picker-arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+  </view>
+
+  <!-- 统计概览 -->
+  <view class="stats-section" wx:if="{{stats}}">
+    <view class="stats-card">
+      <view class="stat-item">
+        <text class="stat-number">{{stats.total_records}}</text>
+        <text class="stat-label">总记录</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-number">{{stats.milestone_count}}</text>
+        <text class="stat-label">里程碑</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-number">{{stats.breakthrough_count}}</text>
+        <text class="stat-label">突破</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-number">{{Math.round(stats.positive_sentiment_ratio * 100)}}%</text>
+        <text class="stat-label">积极率</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 时间线内容 -->
+  <view class="timeline-section">
+    <view class="timeline-container" wx:if="{{timelineData.length > 0}}">
+      <view class="timeline-item" 
+            wx:for="{{timelineData}}" 
+            wx:key="date">
+        
+        <!-- 日期标题 -->
+        <view class="date-header">
+          <view class="date-line"></view>
+          <view class="date-badge">
+            <text class="date-text">{{item.date}}</text>
+            <text class="date-count">{{item.records.length}}条记录</text>
+          </view>
+          <view class="date-line"></view>
+        </view>
+        
+        <!-- 当日记录列表 -->
+        <view class="records-container">
+          <view class="record-card {{record.record_type}} {{record.is_important ? 'important' : ''}} {{record.is_milestone ? 'milestone' : ''}} {{record.is_breakthrough ? 'breakthrough' : ''}}"
+                wx:for="{{item.records}}" 
+                wx:key="id"
+                bindtap="viewRecordDetail"
+                data-record="{{record}}">
+            
+            <!-- 记录头部 -->
+            <view class="record-header">
+              <view class="record-type-badge {{record.record_type}}">
+                <text class="type-icon">{{getTypeIcon(record.record_type)}}</text>
+                <text class="type-name">{{getTypeName(record.record_type)}}</text>
+              </view>
+              <view class="record-time">
+                <text>{{formatTime(record.recorded_at)}}</text>
+              </view>
+            </view>
+            
+            <!-- 记录内容 -->
+            <view class="record-content">
+              <text class="content-text">{{record.content}}</text>
+            </view>
+            
+            <!-- 记录标签 -->
+            <view class="record-tags" wx:if="{{record.tags && record.tags.length > 0}}">
+              <text class="tag" wx:for="{{record.tags}}" wx:key="*this">{{item}}</text>
+            </view>
+            
+            <!-- 记录状态 -->
+            <view class="record-status">
+              <view class="status-item" wx:if="{{record.sentiment}}">
+                <text class="status-icon {{record.sentiment}}">{{getSentimentIcon(record.sentiment)}}</text>
+                <text class="status-text">{{getSentimentText(record.sentiment)}}</text>
+              </view>
+              <view class="status-item" wx:if="{{record.energy_level}}">
+                <text class="status-icon">⚡</text>
+                <text class="status-text">精力{{record.energy_level}}/10</text>
+              </view>
+              <view class="status-item" wx:if="{{record.difficulty_level}}">
+                <text class="status-icon">💪</text>
+                <text class="status-text">难度{{record.difficulty_level}}/10</text>
+              </view>
+            </view>
+            
+            <!-- 重要标记 -->
+            <view class="record-marks" wx:if="{{record.is_important || record.is_milestone || record.is_breakthrough}}">
+              <text class="mark" wx:if="{{record.is_important}}">⭐ 重要</text>
+              <text class="mark" wx:if="{{record.is_milestone}}">🏆 里程碑</text>
+              <text class="mark" wx:if="{{record.is_breakthrough}}">💡 突破</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 空状态 -->
+    <view class="empty-state" wx:else>
+      <text class="empty-icon">📝</text>
+      <text class="empty-text">暂无记录</text>
+      <text class="empty-hint">开始记录你的成长过程吧</text>
+      <button class="empty-btn" bindtap="goToRecord">去记录</button>
+    </view>
+  </view>
+
+  <!-- 加载更多 -->
+  <view class="load-more" wx:if="{{hasMore && timelineData.length > 0}}">
+    <button class="load-more-btn" bindtap="loadMore" loading="{{loading}}">
+      {{loading ? '加载中...' : '加载更多'}}
+    </button>
+  </view>
 </view>

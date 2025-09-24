@@ -4,10 +4,24 @@
   <view class="header">
     <text class="page-title">目标管理</text>
     <view class="header-actions">
+      <view class="action-btn" bindtap="toggleSearchBar">
+        <text class="action-icon">🔍</text>
+      </view>
+      <view class="action-btn" bindtap="showFilterOptions">
+        <text class="action-icon">⚙️</text>
+      </view>
       <view class="create-btn" bindtap="showCreateModal">
         <text class="create-icon">➕</text>
       </view>
     </view>
+  </view>
+
+  <!-- 搜索栏 -->
+  <view class="search-bar" wx:if="{{showSearchBar}}">
+    <input class="search-input" 
+           placeholder="搜索目标标题或类别..." 
+           value="{{searchText}}"
+           bindinput="onSearchInput" />
   </view>
 
   <!-- 目标统计概览 -->
@@ -38,24 +52,52 @@
 
     <!-- 目标卡片列表 -->
     <view class="goal-cards" wx:if="{{goals.length > 0}}">
-      <view class="goal-card" wx:for="{{goals}}" wx:key="id" bindtap="onGoalTap" data-id="{{item.id}}">
+      <view class="goal-card {{item.status === '结束' ? 'completed' : ''}}" 
+            wx:for="{{goals}}" wx:key="id" bindtap="onGoalTap" data-id="{{item.id}}">
+        
+        <!-- 目标头部 -->
         <view class="goal-header">
-          <text class="goal-category">{{item.categoryText}}</text>
-          <text class="goal-status">{{item.statusText}}</text>
+          <view class="goal-category-badge">
+            <text class="goal-category">{{item.categoryText}}</text>
+          </view>
+          <view class="goal-actions">
+            <view class="action-btn-small {{item.status === '结束' ? 'restore' : 'complete'}}" 
+                  bindtap="toggleGoalComplete" data-id="{{item.id}}">
+              <text class="action-icon-small">{{item.status === '结束' ? '↻' : '✓'}}</text>
+            </view>
+            <view class="action-btn-small delete" bindtap="deleteGoal" data-id="{{item.id}}">
+              <text class="action-icon-small">🗑</text>
+            </view>
+          </view>
         </view>
+
+        <!-- 目标标题 -->
         <text class="goal-title">{{item.title}}</text>
+        
+        <!-- 目标描述 -->
+        <text class="goal-description" wx:if="{{item.description}}">{{item.description}}</text>
+
+        <!-- 进度条 -->
         <view class="goal-progress">
           <view class="progress-info">
             <text class="progress-text">进度</text>
-            <text class="progress-detail">{{item.progress}}%</text>
+            <text class="progress-detail">{{item.progressPercent}}%</text>
           </view>
           <view class="progress-bar">
             <view class="progress-fill" style="width: {{item.progressPercent}}%"></view>
           </view>
         </view>
+
+        <!-- 目标底部信息 -->
         <view class="goal-footer">
-          <text class="deadline">截止: {{item.endDateText}}</text>
-          <text class="days-left">剩余{{item.daysLeft}}天</text>
+          <view class="goal-dates">
+            <text class="start-date">开始: {{item.startDateText}}</text>
+            <text class="end-date">截止: {{item.endDateText}}</text>
+          </view>
+          <view class="goal-status-info">
+            <text class="days-left {{item.daysLeft < 7 ? 'urgent' : ''}}">剩余{{item.daysLeft}}天</text>
+            <view class="status-indicator" style="background-color: {{item.status === '结束' ? '#28a745' : (item.daysLeft < 7 ? '#ff4757' : '#00B4D8')}}"></view>
+          </view>
         </view>
       </view>
     </view>
@@ -93,6 +135,67 @@
     <view class="voice-tip">
       <text class="tip-text">按住说话，松开结束录音</text>
       <text class="tip-text">录音完成后将自动跳转到创建页面</text>
+    </view>
+  </view>
+
+  <!-- 自定义语音提示弹窗 -->
+  <voice-hint-modal
+    show="{{showVoiceHintModal}}"
+    title="{{voiceHintData.title}}"
+    voice-text="{{voiceHintData.voiceText}}"
+    suggestions="{{voiceHintData.suggestions}}"
+    cancel-text="{{voiceHintData.cancelText}}"
+    confirm-text="{{voiceHintData.confirmText}}"
+    bind:close="onVoiceHintModalClose"
+    bind:cancel="onVoiceHintModalCancel"
+    bind:confirm="onVoiceHintModalConfirm">
+  </voice-hint-modal>
+</view>
+
+<!-- 筛选和排序弹窗 -->
+<view class="filter-modal" wx:if="{{showFilterModal}}">
+  <view class="filter-content">
+    <view class="filter-header">
+      <text class="filter-title">筛选和排序</text>
+      <view class="close-btn" bindtap="hideFilterModal">✕</view>
+    </view>
+
+    <!-- 状态筛选 -->
+    <view class="filter-section">
+      <text class="filter-section-title">状态筛选</text>
+      <view class="filter-options">
+        <view class="filter-option {{filterStatus === 'all' ? 'active' : ''}}" 
+              bindtap="onFilterChange" data-status="all">
+          <text class="option-text">全部</text>
+        </view>
+        <view class="filter-option {{filterStatus === '进行中' ? 'active' : ''}}" 
+              bindtap="onFilterChange" data-status="进行中">
+          <text class="option-text">进行中</text>
+        </view>
+        <view class="filter-option {{filterStatus === '结束' ? 'active' : ''}}" 
+              bindtap="onFilterChange" data-status="结束">
+          <text class="option-text">已完成</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 排序方式 -->
+    <view class="filter-section">
+      <text class="filter-section-title">排序方式</text>
+      <view class="filter-options">
+        <view class="filter-option {{sortBy === 'deadline' ? 'active' : ''}}" 
+              bindtap="onSortChange" data-sort="deadline">
+          <text class="option-text">按截止时间</text>
+        </view>
+        <view class="filter-option {{sortBy === 'progress' ? 'active' : ''}}" 
+              bindtap="onSortChange" data-sort="progress">
+          <text class="option-text">按进度</text>
+        </view>
+        <view class="filter-option {{sortBy === 'created' ? 'active' : ''}}" 
+              bindtap="onSortChange" data-sort="created">
+          <text class="option-text">按创建时间</text>
+        </view>
+      </view>
     </view>
   </view>
 </view>

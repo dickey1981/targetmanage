@@ -2,5 +2,10 @@
   "navigationBarTitleText": "目标管理",
   "navigationBarBackgroundColor": "#00B4D8",
   "backgroundColor": "#ffffff",
-  "navigationBarTextStyle": "white"
+  "navigationBarTextStyle": "white",
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark",
+  "usingComponents": {
+    "voice-hint-modal": "/components/voice-hint-modal/voice-hint-modal"
+  }
 }

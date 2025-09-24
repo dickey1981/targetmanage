@@ -1,4 +1,117 @@
 /* pages/create-goal/create-goal.wxss */
+
+/* 自定义弹窗样式 */
+.custom-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.custom-modal {
+  background-color: #ffffff;
+  border-radius: 20rpx;
+  width: 600rpx;
+  max-width: 90%;
+  box-shadow: 0 10rpx 30rpx rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 30rpx 30rpx 20rpx 30rpx;
+  border-bottom: 1rpx solid #e9ecef;
+}
+
+.modal-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.modal-close {
+  font-size: 40rpx;
+  color: #999999;
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  padding: 30rpx;
+}
+
+.content-section {
+  margin-bottom: 30rpx;
+}
+
+.content-section:last-child {
+  margin-bottom: 0;
+}
+
+.section-label {
+  font-size: 28rpx;
+  color: #333333;
+  font-weight: bold;
+  display: block;
+  margin-bottom: 10rpx;
+}
+
+.section-content {
+  font-size: 26rpx;
+  color: #666666;
+  line-height: 1.5;
+  display: block;
+}
+
+.suggestions-list {
+  margin-top: 10rpx;
+}
+
+.suggestion-item {
+  font-size: 26rpx;
+  color: #666666;
+  line-height: 1.5;
+  display: block;
+  margin-bottom: 10rpx;
+}
+
+.suggestion-item:last-child {
+  margin-bottom: 0;
+}
+
+.modal-actions {
+  display: flex;
+  border-top: 1rpx solid #e9ecef;
+}
+
+.modal-btn {
+  flex: 1;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  font-weight: bold;
+}
+
+.cancel-btn {
+  color: #333333;
+  border-right: 1rpx solid #e9ecef;
+}
+
+.confirm-btn {
+  color: #007aff;
+}
 .container {
   min-height: 100vh;
   background-color: #f8f9fa;

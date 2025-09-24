@@ -11,7 +11,7 @@ const ENV = {
   
   // 生产环境
   production: {
-    baseUrl: 'https://106.54.212.67:8000',
+    baseUrl: 'http://106.54.212.67:8000',
     apiVersion: 'v1',
     debug: false
   }
@@ -19,13 +19,19 @@ const ENV = {
 
 // 获取当前环境
 function getCurrentEnv() {
-  // 在微信开发者工具中
-  if (wx.getSystemInfoSync().platform === 'devtools') {
+  try {
+    // 在微信开发者工具中
+    if (wx.getSystemInfoSync().platform === 'devtools') {
+      return 'development'
+    }
+    
+    // 在真机环境中
+    return 'production'
+  } catch (error) {
+    // 如果获取系统信息失败，默认使用开发环境
+    console.log('获取环境信息失败，使用开发环境:', error)
     return 'development'
   }
-  
-  // 在真机环境中
-  return 'production'
 }
 
 // 获取当前环境配置

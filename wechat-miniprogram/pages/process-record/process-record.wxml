@@ -1,4 +1,211 @@
-<!--pages/process-record/process-record.wxml-->
-<view class="process-record-container">
-  <text>过程记录页面 - 开发中</text>
+<!-- 过程记录页面 -->
+<view class="container {{recordContent ? 'has-sticky-bar' : ''}}">
+  <!-- 顶部导航 -->
+  <view class="header">
+    <text class="page-title">{{isEditMode ? '编辑记录' : '过程记录'}}</text>
+    <view class="header-actions">
+      <view class="voice-btn" bindtap="startVoiceRecord" wx:if="{{!isEditMode && !recordContent}}">
+        <text class="voice-icon">🎤</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 固定操作栏 -->
+  <view class="sticky-action-bar" wx:if="{{recordContent}}">
+    <text class="action-title">确认语音记录</text>
+    <view class="save-btn" bindtap="saveRecord">保存</view>
+  </view>
+
+  <!-- 语音记录区域 -->
+  <view class="voice-section" wx:if="{{showVoiceSection}}">
+    <!-- 测试按钮 -->
+    <view class="test-button" bindtap="testButton">
+      <text>测试按钮</text>
+    </view>
+    
+    <view class="voice-container">
+      <view class="voice-button {{isRecording ? 'recording' : ''}}" 
+            bindtouchstart="startRecording" 
+            bindtouchend="stopRecording">
+        <text class="voice-text">{{recordingText}}</text>
+        <text class="voice-hint">{{voiceHint}}</text>
+        <view class="recording-indicator" wx:if="{{isRecording}}">
+          <view class="pulse-dot"></view>
+          <view class="pulse-dot"></view>
+          <view class="pulse-dot"></view>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 语音提示 -->
+    <view class="voice-tip">
+      <text class="tip-text">按住说话，松开结束录音</text>
+      <text class="tip-text">系统会自动分析记录类型和情感</text>
+    </view>
+  </view>
+
+  <!-- 记录内容编辑 -->
+  <view class="content-section" wx:if="{{showContentSection}}">
+    <text class="section-title">记录内容</text>
+    <textarea class="content-input" 
+              placeholder="请输入记录内容..."
+              value="{{recordContent}}"
+              bindinput="onContentInput"
+              maxlength="100"
+              show-confirm-bar="{{false}}">
+    </textarea>
+    <view class="char-count">{{recordContent.length}}/100</view>
+  </view>
+
+  <!-- 所属目标选择 -->
+  <view class="goal-section" wx:if="{{showGoalSection}}">
+    <text class="section-title">所属目标</text>
+    
+    <!-- 下拉选择框 -->
+    <view class="dropdown-container">
+      <!-- 选择框显示区域 -->
+      <view class="dropdown-display" bindtap="toggleGoalDropdown">
+        <view class="selected-goal">
+          <text class="goal-title">{{selectedGoalTitle || '请选择目标'}}</text>
+          <text class="goal-category" wx:if="{{selectedGoalCategory}}">{{selectedGoalCategory}}</text>
+        </view>
+        <view class="dropdown-arrow {{isGoalDropdownOpen ? 'open' : ''}}">▼</view>
+      </view>
+      
+      <!-- 下拉选项区域 -->
+      <view class="dropdown-options" wx:if="{{isGoalDropdownOpen}}">
+        <!-- 搜索框 -->
+        <view class="search-container">
+          <input class="search-input" 
+                 placeholder="搜索目标..." 
+                 value="{{goalSearchText}}"
+                 bindinput="onGoalSearchInput"
+                 confirm-type="search" />
+        </view>
+        
+        <!-- 选项列表 -->
+        <view class="options-list">
+          <!-- 无目标选项 -->
+          <view class="option-item {{selectedGoalId === null ? 'selected' : ''}}"
+                bindtap="selectGoal"
+                data-id="{{null}}">
+            <view class="option-info">
+              <text class="option-title">无目标</text>
+              <text class="option-category">独立记录</text>
+            </view>
+            <view class="option-check" wx:if="{{selectedGoalId === null}}">✓</view>
+          </view>
+          
+          <!-- 过滤后的目标选项 -->
+          <view class="option-item {{selectedGoalId === item.id ? 'selected' : ''}}"
+                wx:for="{{filteredGoals}}" 
+                wx:key="id"
+                bindtap="selectGoal"
+                data-id="{{item.id}}">
+            <view class="option-info">
+              <text class="option-title">{{item.title}}</text>
+              <text class="option-category" wx:if="{{item.category}}">{{item.category}}</text>
+            </view>
+            <view class="option-check" wx:if="{{selectedGoalId === item.id}}">✓</view>
+          </view>
+          
+          <!-- 无匹配结果 -->
+          <view class="no-results" wx:if="{{filteredGoals.length === 0 && goalSearchText}}">
+            <text>未找到匹配的目标</text>
+          </view>
+          
+          <!-- 暂无目标 -->
+          <view class="no-goals" wx:if="{{availableGoals.length === 0 && !goalSearchText}}">
+            <text>暂无可用目标</text>
+            <text style="display: block; margin-top: 10rpx; font-size: 24rpx;">您可以先创建目标</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 记录类型选择 -->
+  <view class="type-section" wx:if="{{showTypeSection}}">
+    <text class="section-title">选择记录类型</text>
+    <view class="type-grid">
+      <view class="type-item {{selectedType === item.value ? 'selected' : ''}}"
+            wx:for="{{recordTypes}}" 
+            wx:key="value"
+            bindtap="selectRecordType"
+            data-type="{{item.value}}">
+        <text class="type-icon">{{item.icon}}</text>
+        <text class="type-name">{{item.name}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 重要标记 -->
+  <view class="mark-section" wx:if="{{showMarkSection}}">
+    <text class="section-title">重要标记</text>
+    <view class="mark-options">
+      <view class="mark-item {{isImportant ? 'selected' : ''}}"
+            bindtap="toggleImportant">
+        <text class="mark-icon">⭐</text>
+        <text class="mark-name">重要</text>
+      </view>
+      <view class="mark-item {{isMilestone ? 'selected' : ''}}"
+            bindtap="toggleMilestone">
+        <text class="mark-icon">🏆</text>
+        <text class="mark-name">里程碑</text>
+      </view>
+      <view class="mark-item {{isBreakthrough ? 'selected' : ''}}"
+            bindtap="toggleBreakthrough">
+        <text class="mark-icon">💡</text>
+        <text class="mark-name">突破</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 标签编辑 -->
+  <view class="tags-section" wx:if="{{showMarkSection}}">
+    <text class="section-title">标签</text>
+    
+    <!-- 现有标签 -->
+    <view class="tags-container" wx:if="{{tags.length > 0}}">
+      <view class="tag-item" wx:for="{{tags}}" wx:key="*this">
+        <text class="tag-text">{{item}}</text>
+        <text class="tag-remove" bindtap="removeTag" data-index="{{index}}">×</text>
+      </view>
+    </view>
+    
+    <!-- 添加新标签 -->
+    <view class="add-tag-container">
+      <input class="tag-input" 
+             placeholder="输入新标签，按回车添加" 
+             value="{{newTag}}"
+             bindinput="onTagInput"
+             confirm-type="done"
+             bindconfirm="addTag" />
+    </view>
+  </view>
+
+  <!-- 分析结果展示 -->
+  <view class="analysis-section" wx:if="{{showAnalysisSection && analysisResult}}">
+    <text class="section-title">智能分析结果</text>
+    <view class="analysis-card">
+      <view class="analysis-item">
+        <text class="analysis-label">记录类型:</text>
+        <text class="analysis-value">{{analysisResult.record_type}}</text>
+      </view>
+      <view class="analysis-item">
+        <text class="analysis-label">情感倾向:</text>
+        <text class="analysis-value {{analysisResult.sentiment}}">{{analysisResult.sentiment}}</text>
+      </view>
+      <view class="analysis-item">
+        <text class="analysis-label">关键词:</text>
+        <text class="analysis-value">{{analysisResult.keywords.join(', ')}}</text>
+      </view>
+      <view class="analysis-item">
+        <text class="analysis-label">置信度:</text>
+        <text class="analysis-value">{{analysisResult.confidence_score}}%</text>
+      </view>
+    </view>
+  </view>
+
+
 </view>

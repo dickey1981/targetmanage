@@ -23,37 +23,40 @@ class CreateRecordRequest(BaseModel):
 class RecordResponse(BaseModel):
     success: bool
     message: str
-    data: Optional[dict] = None
+    data: Optional[list] = None
 
 @router.get("/recent", response_model=RecordResponse)
 async def get_recent_records(
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """获取最近记录"""
     try:
-        # 这里应该从数据库查询实际的最近记录
-        # 目前返回模拟数据
-        recent_records = [
-            {
-                "id": "1",
-                "type": "voice",
-                "content": "今天完成了项目文档的编写",
-                "created_at": "2024-01-01T10:00:00Z"
-            },
-            {
-                "id": "2",
-                "type": "photo",
-                "content": "拍摄了工作环境的照片",
-                "created_at": "2024-01-01T09:30:00Z"
-            },
-            {
-                "id": "3",
-                "type": "text",
-                "content": "记录了一个新的想法",
-                "created_at": "2024-01-01T09:00:00Z"
-            }
-        ]
+        # 从过程记录表查询最近的记录
+        from sqlalchemy import text
+        
+        # 查询最近的过程记录
+        query = text("""
+            SELECT id, content, record_type, source, recorded_at, sentiment
+            FROM process_records 
+            WHERE is_deleted = FALSE 
+            ORDER BY recorded_at DESC 
+            LIMIT 10
+        """)
+        
+        result = db.execute(query)
+        records = result.fetchall()
+        
+        # 转换为前端需要的格式
+        recent_records = []
+        for record in records:
+            recent_records.append({
+                "id": str(record[0]),
+                "type": record[2],  # record_type
+                "content": record[1],  # content
+                "source": record[3],  # source
+                "sentiment": record[5],  # sentiment
+                "created_at": record[4].isoformat() if record[4] else None
+            })
         
         return RecordResponse(
             success=True,

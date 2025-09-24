@@ -66,7 +66,7 @@
         <text class="modal-title">
           {{currentRecordType === 'voice' ? '语音记录' : 
             currentRecordType === 'photo' ? '拍照记录' : 
-            currentRecordType === 'text' ? '文字记录' : '手动录入'}}
+            currentRecordType === 'text' ? '文字记录' : '记录'}}
         </text>
         <text class="modal-close" bindtap="closeRecordModal">×</text>
       </view>
@@ -85,6 +85,12 @@
                 <text class="main-text">{{recordingText}}</text>
                 <text class="sub-text">{{voiceHint}}</text>
               </view>
+              <!-- 录音指示器 -->
+              <view class="recording-indicator" wx:if="{{isRecording}}">
+                <view class="pulse-dot"></view>
+                <view class="pulse-dot"></view>
+                <view class="pulse-dot"></view>
+              </view>
             </button>
           </view>
         </view>
@@ -99,19 +105,46 @@
 
         <!-- 文字记录 -->
         <view wx:if="{{currentRecordType === 'text'}}" class="text-record">
+          <!-- 目标选择 -->
+          <view class="goal-selection">
+            <text class="goal-selection-title">选择关联目标（可选）</text>
+            <view class="goal-list">
+              <view 
+                wx:for="{{availableGoals}}" 
+                wx:key="id"
+                class="goal-item {{selectedGoalId === item.id ? 'selected' : ''}}"
+                bindtap="selectGoal"
+                data-goal-id="{{item.id}}"
+              >
+                <text class="goal-title">{{item.title}}</text>
+                <text class="goal-progress">{{item.progress_percentage}}%</text>
+              </view>
+              <view 
+                class="goal-item {{selectedGoalId === null ? 'selected' : ''}}"
+                bindtap="clearGoalSelection"
+              >
+                <text class="goal-title">不关联目标</text>
+              </view>
+            </view>
+          </view>
+          
           <textarea 
             class="text-input" 
             placeholder="请输入记录内容..."
+            value="{{textInput}}"
             bindinput="onTextInput"
             maxlength="500"
           ></textarea>
-          <text class="text-hint">最多500字</text>
-        </view>
-
-        <!-- 手动录入 -->
-        <view wx:if="{{currentRecordType === 'manual'}}" class="manual-record">
-          <input class="manual-input" placeholder="请输入记录内容..." />
-          <button class="submit-btn">提交记录</button>
+          <view class="text-actions">
+            <text class="text-hint">最多500字</text>
+            <button 
+              class="submit-btn {{isSubmitting ? 'submitting' : ''}}" 
+              bindtap="submitTextRecord"
+              disabled="{{isSubmitting}}"
+            >
+              {{isSubmitting ? '提交中...' : '提交记录'}}
+            </button>
+          </view>
         </view>
       </view>
     </view>
