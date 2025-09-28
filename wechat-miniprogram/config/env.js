@@ -11,7 +11,7 @@ const ENV = {
   
   // 生产环境
   production: {
-    baseUrl: 'http://106.54.212.67:8000',
+    baseUrl: 'https://targetmanage.cn',
     apiVersion: 'v1',
     debug: false
   }
