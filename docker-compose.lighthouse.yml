@@ -79,8 +79,8 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./admin-frontend/nginx.lighthouse.conf:/etc/nginx/nginx.conf
-      - ./nginx/ssl:/etc/nginx/ssl
+      - ./admin-frontend/nginx.lighthouse-http.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
       - ./uploads:/var/www/uploads
       - ./logs/nginx:/var/log/nginx
     depends_on:

@@ -177,6 +177,7 @@
           <text class="auth-hint">需要授权手机号才能使用</text>
         </view>
         
+        <!-- 主要授权方案：手机号授权 -->
         <button class="phone-auth-btn primary" 
                 open-type="getPhoneNumber" 
                 bindgetphonenumber="onGetPhoneNumber"
@@ -189,7 +190,7 @@
           <text class="btn-text">暂不授权</text>
         </button>
         
-        <!-- 备用授权方案 -->
+        <!-- 备用授权方案：微信授权 -->
         <button class="phone-auth-btn fallback" 
                 open-type="getUserInfo" 
                 bindgetuserinfo="onGetUserInfo">

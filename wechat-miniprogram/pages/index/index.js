@@ -237,9 +237,10 @@ Page({
     })
   },
 
-  // 获取用户信息授权（备用方案）
+  // 获取用户信息授权（主要方案）
   onGetUserInfo(e) {
     console.log('👤 用户信息授权结果:', e.detail)
+    console.log('授权详情:', JSON.stringify(e.detail, null, 2))
     
     if (e.detail.userInfo) {
       console.log('✅ 获取到用户信息:', e.detail.userInfo)
@@ -253,14 +254,37 @@ Page({
         isLoggingIn: true
       })
       
-      // 使用用户信息进行登录（不包含手机号）
+      // 使用用户信息进行登录（不需要手机号）
       this.loginWithWeChat(null, e.detail.userInfo)
     } else {
       console.log('❌ 用户拒绝授权')
-      wx.showToast({
-        title: '需要授权才能使用完整功能',
-        icon: 'none'
-      })
+      console.log('错误信息:', e.detail.errMsg)
+      
+      // 检查是否是因为用户拒绝
+      if (e.detail.errMsg && e.detail.errMsg.includes('deny')) {
+        wx.showModal({
+          title: '授权提示',
+          content: '需要获取您的微信信息才能使用小程序，是否重新授权？',
+          confirmText: '重新授权',
+          cancelText: '取消',
+          success: (res) => {
+            if (res.cancel) {
+              this.setData({
+                showLoginModal: false
+              })
+              wx.showToast({
+                title: '已取消授权',
+                icon: 'none'
+              })
+            }
+          }
+        })
+      } else {
+        wx.showToast({
+          title: '授权失败，请重试',
+          icon: 'none'
+        })
+      }
     }
   },
 
