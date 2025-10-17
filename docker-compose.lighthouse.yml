@@ -36,6 +36,7 @@ services:
       - COS_BUCKET_NAME=${COS_BUCKET_NAME}
       - WECHAT_APP_ID=${WECHAT_APP_ID}
       - WECHAT_APP_SECRET=${WECHAT_APP_SECRET}
+      - ASR_DEV_MODE=${ASR_DEV_MODE:-false}
     ports:
       - "8000:8000"
     volumes:
