@@ -511,6 +511,16 @@ Page({
       return
     }
     
+    // 如果已经在录音，先停止
+    if (this.data.isRecording && this.recorderManager) {
+      console.log('⚠️ 录音器已在录音，先停止')
+      try {
+        this.recorderManager.stop()
+      } catch (e) {
+        console.log('停止录音异常:', e)
+      }
+    }
+    
     // 检查录音权限
     this.checkRecordPermission().then(() => {
       this.setData({
@@ -519,33 +529,41 @@ Page({
         voiceHint: '松开结束录音'
       })
       
-      // 开始录音
-      const recorderManager = wx.getRecorderManager()
-      
-      recorderManager.onStart(() => {
-        console.log('录音开始')
-        wx.showToast({
-          title: '开始录音',
-          icon: 'none'
+      // 获取或创建录音管理器（使用单例）
+      if (!this.recorderManager) {
+        this.recorderManager = wx.getRecorderManager()
+        
+        // 只绑定一次事件监听
+        this.recorderManager.onStart(() => {
+          console.log('录音开始')
         })
-      })
-      
-      recorderManager.onError((err) => {
-        console.error('录音错误:', err)
-        this.handleRecordError(err)
-      })
+        
+        this.recorderManager.onError((err) => {
+          console.error('录音错误:', err)
+          this.handleRecordError(err)
+        })
+        
+        this.recorderManager.onStop((res) => {
+          console.log('录音结束:', res)
+          if (this.onStopCallback) {
+            this.onStopCallback(res)
+          }
+        })
+      }
       
       // 开始录音
-      recorderManager.start({
-        duration: 60000, // 最长60秒
-        sampleRate: 16000, // 16k采样率
-        numberOfChannels: 1, // 单声道
-        encodeBitRate: 96000, // 编码码率
-        format: 'mp3' // 格式
-      })
-      
-      // 保存录音管理器引用
-      this.recorderManager = recorderManager
+      try {
+        this.recorderManager.start({
+          duration: 60000, // 最长60秒
+          sampleRate: 16000, // 16k采样率
+          numberOfChannels: 1, // 单声道
+          encodeBitRate: 96000, // 编码码率
+          format: 'mp3' // 格式
+        })
+      } catch (e) {
+        console.error('启动录音失败:', e)
+        this.handleRecordError(e)
+      }
     }).catch((error) => {
       console.error('录音权限检查失败:', error)
       wx.showToast({
@@ -637,7 +655,10 @@ Page({
   },
 
   stopVoiceRecord() {
-    if (!this.data.isRecording) return
+    if (!this.data.isRecording) {
+      console.log('⚠️ 当前没有在录音')
+      return
+    }
     
     this.setData({
       isRecording: false,
@@ -647,14 +668,24 @@ Page({
     
     // 停止录音
     if (this.recorderManager) {
-      this.recorderManager.stop()
+      try {
+        // 设置回调函数
+        this.onStopCallback = (res) => {
+          console.log('录音结束，文件路径:', res.tempFilePath)
+          this.processVoiceRecord(res.tempFilePath)
+          this.onStopCallback = null // 清除回调
+        }
+        
+        this.recorderManager.stop()
+      } catch (e) {
+        console.error('停止录音失败:', e)
+        this.setData({
+          isRecording: false,
+          recordingText: '按住说话',
+          voiceHint: '松开结束'
+        })
+      }
     }
-    
-    // 监听录音结束
-    this.recorderManager.onStop((res) => {
-      console.log('录音结束:', res)
-      this.processVoiceRecord(res.tempFilePath)
-    })
   },
 
   // 处理录音文件
