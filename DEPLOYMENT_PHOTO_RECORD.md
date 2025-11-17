@@ -97,12 +97,12 @@ nano .env
 
 ```bash
 # 腾讯云配置
-TENCENT_SECRET_ID=AKIDMYZOzPdfT6WkkX8ez6920lLk03tXyCCy
-TENCENT_SECRET_KEY=Lhu9YnrjelhT4TjpkT5YFvS0tdEhz854
+TENCENT_SECRET_ID=你的腾讯云SecretId
+TENCENT_SECRET_KEY=你的腾讯云SecretKey
 
 # 微信配置
-WECHAT_APP_ID=wxe0c0f4327a75c33f
-WECHAT_APP_SECRET=7757cc7f7b9c819cfd4db042176f1698
+WECHAT_APP_ID=你的微信小程序AppId
+WECHAT_APP_SECRET=你的微信小程序AppSecret
 
 # 开发模式配置
 ASR_DEV_MODE=true   # 语音识别开发模式

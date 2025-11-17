@@ -47,9 +47,9 @@ class Settings(BaseSettings):
     ALLOWED_EXTENSIONS: List[str] = [".jpg", ".jpeg", ".png", ".gif", ".mp3", ".wav", ".m4a"]
     
     # 微信小程序配置
-    # 请替换为您的实际微信小程序AppID和AppSecret
-    WECHAT_APP_ID: str = "wxe0c0f4327a75c33f"  # 例如：wx1234567890abcdef
-    WECHAT_APP_SECRET: str = "7757cc7f7b9c819cfd4db042176f1698"  # 例如：abcdef1234567890abcdef1234567890
+    # 这些是默认值，生产环境会被环境变量覆盖
+    WECHAT_APP_ID: str = ""  # 从环境变量 WECHAT_APP_ID 读取
+    WECHAT_APP_SECRET: str = ""  # 从环境变量 WECHAT_APP_SECRET 读取
     WECHAT_SESSION_KEY_EXPIRE: int = 7200  # 2小时
     
     # AI服务配置
