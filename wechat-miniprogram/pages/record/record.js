@@ -116,10 +116,38 @@ Page({
       return
     }
 
-    this.setData({
-      currentRecordType: id,
-      showRecordModal: true
-    })
+    // 根据类型不同处理
+    if (id === 'voice') {
+      // 语音记录：显示模态框
+      this.setData({
+        currentRecordType: id,
+        showRecordModal: true
+      })
+    } else if (id === 'photo') {
+      // 拍照记录：直接调用拍照功能
+      this.takePhotoDirectly()
+    } else if (id === 'text') {
+      // 文字记录：加载目标后显示模态框
+      console.log('🎯 开始加载目标列表...')
+      this.loadAvailableGoals()
+        .then(() => {
+          console.log('✅ 目标加载成功')
+          console.log('目标列表:', this.data.availableGoals)
+          console.log('目标数量:', this.data.availableGoals.length)
+          this.setData({
+            currentRecordType: id,
+            showRecordModal: true
+          })
+        })
+        .catch((err) => {
+          console.error('❌ 加载目标失败:', err)
+          // 即使加载失败也显示弹窗，让用户可以输入文字
+          this.setData({
+            currentRecordType: id,
+            showRecordModal: true
+          })
+        })
+    }
   },
 
   // 关闭记录模态框
@@ -220,6 +248,240 @@ Page({
     if (this.data.isRecording) {
       recorderManager.stop()
     }
+  },
+
+  // 直接拍照（不显示模态框）
+  takePhotoDirectly() {
+    console.log('📷 直接调用拍照功能')
+    
+    wx.chooseImage({
+      count: 1,
+      sizeType: ['compressed'],
+      sourceType: ['camera', 'album'],  // 支持拍照和相册
+      success: (res) => {
+        const tempFilePath = res.tempFilePaths[0]
+        console.log('📷 选择图片成功:', tempFilePath)
+        
+        // 显示加载提示
+        wx.showLoading({
+          title: '正在识别图片...',
+          mask: true
+        })
+        
+        // 上传图片并识别
+        this.uploadPhotoForRecognition(tempFilePath)
+      },
+      fail: (err) => {
+        console.error('📷 选择图片失败:', err)
+        wx.showToast({
+          title: '选择图片失败',
+          icon: 'none'
+        })
+      }
+    })
+  },
+
+  // 上传图片进行识别（只识别，不创建记录）
+  uploadPhotoForRecognition(filePath) {
+    const apiUrl = `${app.globalData.baseUrl}/api/photo-records/recognize`
+    const token = app.globalData.token
+    
+    console.log('📤 开始上传图片识别')
+    console.log('API URL:', apiUrl)
+    console.log('图片路径:', filePath)
+    
+    wx.uploadFile({
+      url: apiUrl,
+      filePath: filePath,
+      name: 'photo',
+      header: {
+        'Authorization': `Bearer ${token}`
+      },
+      timeout: 30000,
+      success: (res) => {
+        console.log('📤 识别响应:', res)
+        
+        try {
+          const data = JSON.parse(res.data)
+          console.log('📤 解析后的数据:', data)
+          
+          if (data.success) {
+            wx.hideLoading()
+            
+            // 提取识别的文字
+            const recognizedText = data.data.text || ''
+            console.log('✅ 识别成功，文字内容:', recognizedText)
+            
+            // 显示识别结果确认弹窗
+            this.showPhotoRecognitionConfirm(recognizedText)
+            
+          } else {
+            wx.hideLoading()
+            const errorMsg = data.message || data.detail || '识别失败'
+            wx.showModal({
+              title: '识别失败',
+              content: errorMsg,
+              showCancel: false,
+              confirmText: '知道了'
+            })
+          }
+        } catch (e) {
+          console.error('📤 解析响应失败:', e)
+          wx.hideLoading()
+          wx.showToast({
+            title: '处理响应失败',
+            icon: 'none'
+          })
+        }
+      },
+      fail: (err) => {
+        console.error('📤 上传失败:', err)
+        wx.hideLoading()
+        wx.showToast({
+          title: '上传失败，请重试',
+          icon: 'none'
+        })
+      }
+    })
+  },
+
+  // 显示照片识别结果确认弹窗
+  showPhotoRecognitionConfirm(recognizedText) {
+    console.log('📸 显示识别结果确认弹窗')
+    console.log('识别内容:', recognizedText)
+    
+    wx.showModal({
+      title: '识别成功',
+      content: `识别内容：${recognizedText}`,
+      confirmText: '创建记录',
+      cancelText: '放弃',
+      success: (res) => {
+        if (res.confirm) {
+          // 用户点击"创建记录"，跳转到过程记录页面
+          console.log('✅ 用户选择创建记录')
+          this.navigateToProcessRecord(recognizedText)
+        } else {
+          // 用户点击"放弃"
+          console.log('❌ 用户放弃创建记录')
+          wx.showToast({
+            title: '已取消',
+            icon: 'none',
+            duration: 1500
+          })
+        }
+      }
+    })
+  },
+
+  // 跳转到过程记录页面（拍照记录）
+  navigateToProcessRecord(photoText) {
+    console.log('🚀 ========== 准备跳转到过程记录页面 ==========')
+    console.log('🚀 照片识别内容:', photoText)
+    
+    const encodedText = encodeURIComponent(photoText)
+    const targetUrl = `/pages/process-record/process-record?mode=create&photoText=${encodedText}`
+    
+    console.log('🚀 目标URL:', targetUrl)
+    console.log('🚀 使用 reLaunch 强制重新加载页面')
+    
+    // 使用 reLaunch 替代 navigateTo，强制重新加载页面
+    wx.reLaunch({
+      url: targetUrl,
+      success: () => {
+        console.log('✅ wx.reLaunch 调用成功')
+      },
+      fail: (err) => {
+        console.error('❌ wx.reLaunch 调用失败:', err)
+        // 降级方案：使用 navigateTo
+        console.log('🔄 尝试降级使用 navigateTo')
+        wx.navigateTo({
+          url: targetUrl,
+          success: () => {
+            console.log('✅ navigateTo 成功')
+          },
+          fail: (err2) => {
+            console.error('❌ navigateTo 也失败:', err2)
+            wx.showToast({
+              title: '跳转失败',
+              icon: 'none'
+            })
+          }
+        })
+      }
+    })
+  },
+
+  // 加载可用目标
+  loadAvailableGoals() {
+    return new Promise((resolve, reject) => {
+      const token = app.globalData.token
+      if (!token) {
+        console.warn('无法加载目标：用户未登录')
+        reject('未登录')
+        return
+      }
+      
+      wx.request({
+        url: `${app.globalData.baseUrl}/api/goals/`,
+        method: 'GET',
+        header: {
+          'Authorization': `Bearer ${token}`
+        },
+        data: {
+          page: 1,
+          page_size: 100  // 加载所有目标
+        },
+        success: (res) => {
+          console.log('📥 API响应状态:', res.statusCode)
+          console.log('📥 API响应完整数据:', res.data)
+          
+          if (res.statusCode === 200 && res.data.success) {
+            // 后端返回格式：{ success: true, data: [...], ... }
+            const goals = res.data.data || []
+            console.log('📊 解析到的目标数组:', goals)
+            console.log('📊 目标数量:', goals.length)
+            
+            this.setData({
+              availableGoals: goals
+            })
+            console.log('✅ 加载目标成功:', goals.length)
+            resolve(goals)
+          } else {
+            console.error('❌ 加载目标失败 - 状态码:', res.statusCode)
+            console.error('❌ 响应结构:', res.data)
+            reject(res)
+          }
+        },
+        fail: (err) => {
+          console.error('❌ 请求失败:', err)
+          reject(err)
+        }
+      })
+    })
+  },
+
+  // 选择目标
+  selectGoal(e) {
+    console.log('📌 selectGoal 被调用')
+    console.log('事件对象:', e)
+    console.log('dataset:', e.currentTarget.dataset)
+    
+    const { goalId } = e.currentTarget.dataset
+    console.log('提取的 goalId:', goalId)
+    
+    this.setData({
+      selectedGoalId: goalId
+    })
+    console.log('✅ 选择目标完成，当前 selectedGoalId:', this.data.selectedGoalId)
+  },
+
+  // 清除目标选择
+  clearGoalSelection() {
+    console.log('📌 clearGoalSelection 被调用')
+    this.setData({
+      selectedGoalId: null
+    })
+    console.log('✅ 清除目标选择完成，当前 selectedGoalId:', this.data.selectedGoalId)
   },
 
   // 处理语音录制结果
@@ -451,53 +713,6 @@ Page({
     const recordId = e.currentTarget.dataset.recordId
     wx.navigateTo({
       url: `/pages/record-detail/record-detail?id=${recordId}`
-    })
-  },
-
-  // 加载可用目标
-  loadAvailableGoals() {
-    const token = app.globalData.token
-    if (!token) {
-      console.warn('无法加载可用目标：用户未登录')
-      return
-    }
-    
-    wx.request({
-      url: `${app.globalData.baseUrl}/api/goals/`,
-      method: 'GET',
-      header: {
-        'Authorization': `Bearer ${token}`
-      },
-      data: {
-        status: 'active',
-        page: 1,
-        page_size: 50
-      },
-      success: (res) => {
-        if (res.statusCode === 200) {
-          this.setData({
-            availableGoals: res.data.goals || []
-          })
-        }
-      },
-      fail: (err) => {
-        console.error('加载可用目标失败:', err)
-      }
-    })
-  },
-
-  // 选择目标
-  selectGoal(e) {
-    const goalId = e.currentTarget.dataset.goalId
-    this.setData({
-      selectedGoalId: goalId
-    })
-  },
-
-  // 清除目标选择
-  clearGoalSelection() {
-    this.setData({
-      selectedGoalId: null
     })
   }
 })

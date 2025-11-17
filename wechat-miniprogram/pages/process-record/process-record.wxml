@@ -12,7 +12,7 @@
 
   <!-- 固定操作栏 -->
   <view class="sticky-action-bar" wx:if="{{recordContent}}">
-    <text class="action-title">确认语音记录</text>
+    <text class="action-title">{{isEditMode ? '编辑记录' : '确认记录'}}</text>
     <view class="save-btn" bindtap="saveRecord">保存</view>
   </view>
 

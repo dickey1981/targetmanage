@@ -1,0 +1,73 @@
+<!-- components/photo-result-modal/photo-result-modal.wxml -->
+<view class="photo-result-modal {{show ? 'show' : ''}}" wx:if="{{show}}">
+  <view class="modal-mask" bindtap="close"></view>
+  <view class="modal-container">
+    <view class="modal-header">
+      <text class="modal-title">📸 照片识别成功</text>
+      <view class="close-btn" bindtap="close">✕</view>
+    </view>
+
+    <view class="modal-body" wx:if="{{photoData}}">
+      <!-- 识别内容 -->
+      <view class="result-section">
+        <view class="section-title">识别内容</view>
+        <view class="content-text">{{photoData.record.content}}</view>
+      </view>
+
+      <!-- 分析结果 -->
+      <view class="result-section">
+        <view class="section-title">智能分析</view>
+        <view class="analysis-grid">
+          <view class="analysis-item">
+            <text class="item-label">记录类型</text>
+            <text class="item-value">{{getRecordTypeText(photoData.analysis.record_type)}}</text>
+          </view>
+          <view class="analysis-item">
+            <text class="item-label">情绪</text>
+            <text class="item-value">{{getSentimentText(photoData.analysis.sentiment)}}</text>
+          </view>
+          <view class="analysis-item">
+            <text class="item-label">能量等级</text>
+            <text class="item-value">{{photoData.analysis.energy_level}}</text>
+          </view>
+          <view class="analysis-item">
+            <text class="item-label">置信度</text>
+            <text class="item-value">{{photoData.analysis.confidence_score}}%</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 关键词 -->
+      <view class="result-section" wx:if="{{photoData.analysis.keywords && photoData.analysis.keywords.length > 0}}">
+        <view class="section-title">关键词</view>
+        <view class="keywords">
+          <view class="keyword-tag" wx:for="{{photoData.analysis.keywords}}" wx:key="index">
+            {{item}}
+          </view>
+        </view>
+      </view>
+
+      <!-- 特殊标记 -->
+      <view class="result-section" wx:if="{{photoData.analysis.is_important || photoData.analysis.is_milestone || photoData.analysis.is_breakthrough}}">
+        <view class="section-title">特殊标记</view>
+        <view class="tags">
+          <view class="tag important" wx:if="{{photoData.analysis.is_important}}">
+            ⭐ 重要
+          </view>
+          <view class="tag milestone" wx:if="{{photoData.analysis.is_milestone}}">
+            🎯 里程碑
+          </view>
+          <view class="tag breakthrough" wx:if="{{photoData.analysis.is_breakthrough}}">
+            🚀 突破
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="modal-footer">
+      <button class="btn btn-secondary" bindtap="close">关闭</button>
+      <button class="btn btn-primary" bindtap="confirm">确定</button>
+    </view>
+  </view>
+</view>
+

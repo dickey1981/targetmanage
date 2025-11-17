@@ -70,17 +70,22 @@ Page({
   },
 
   onLoad(options) {
-    // 防止重复加载
-    if (this.data.isPageLoaded) {
-      console.log('⚠️ 页面已加载，忽略重复加载')
-      return
-    }
-    
-    this.setData({
-      isPageLoaded: true
+    console.log('📱 ========== process-record页面加载 ==========')
+    console.log('📱 传入参数:', options)
+    console.log('📱 当前页面状态:', {
+      isPageLoaded: this.data.isPageLoaded,
+      recordContent: this.data.recordContent,
+      showVoiceSection: this.data.showVoiceSection,
+      showContentSection: this.data.showContentSection
     })
     
-    console.log('📱 process-record页面加载，参数:', options)
+    // 重置页面状态
+    this.setData({
+      isPageLoaded: true,
+      isSaving: false
+    })
+    
+    console.log('📱 开始初始化页面...')
     
     // 检查是否为编辑模式
     if (options.id && options.mode === 'edit') {
@@ -117,6 +122,36 @@ Page({
         // 目标推荐将在目标列表加载完成后触发
       }
       
+      // 检查是否有拍照识别结果
+      if (options.photoText) {
+        const photoText = decodeURIComponent(options.photoText)
+        console.log('📷 ========== 拍照识别结果 ==========')
+        console.log('📷 原始参数:', options.photoText)
+        console.log('📷 解码后内容:', photoText)
+        
+        // 预填充拍照识别结果
+        this.setData({
+          recordContent: photoText,
+          showVoiceSection: false,
+          showContentSection: true,
+          showGoalSection: true,
+          showTypeSection: true,
+          showMarkSection: true,
+          canSave: true
+        })
+        
+        console.log('📷 页面状态已更新:', {
+          recordContent: this.data.recordContent,
+          showVoiceSection: this.data.showVoiceSection,
+          showContentSection: this.data.showContentSection,
+          canSave: this.data.canSave
+        })
+        
+        // 目标推荐将在目标列表加载完成后触发
+      } else {
+        console.log('⚠️ 没有 photoText 参数')
+      }
+      
       // 确保目标选择区域显示
       this.setData({
         showGoalSection: true
@@ -131,8 +166,37 @@ Page({
   },
 
   onShow() {
-    // 页面显示时不进行任何操作，避免重复刷新
-    console.log('📱 process-record页面显示')
+    console.log('📱 ========== process-record页面显示 ==========')
+    console.log('📱 当前状态:', {
+      recordContent: this.data.recordContent,
+      showVoiceSection: this.data.showVoiceSection,
+      showContentSection: this.data.showContentSection,
+      showGoalSection: this.data.showGoalSection,
+      canSave: this.data.canSave
+    })
+  },
+
+  onUnload() {
+    console.log('📱 ========== process-record页面卸载 ==========')
+    console.log('📱 卸载前状态:', {
+      recordContent: this.data.recordContent,
+      isPageLoaded: this.data.isPageLoaded
+    })
+    
+    // 页面卸载时重置状态
+    this.setData({
+      isPageLoaded: false,
+      recordContent: '',
+      showVoiceSection: true,
+      showContentSection: false,
+      showGoalSection: false,
+      showTypeSection: false,
+      showMarkSection: false,
+      canSave: false,
+      isSaving: false
+    })
+    
+    console.log('📱 状态已重置')
   },
 
   // 加载记录详情用于编辑
@@ -1088,37 +1152,25 @@ Page({
         if (res.statusCode === 200) {
           wx.showToast({
             title: this.data.isEditMode ? '更新成功' : '保存成功',
-            icon: 'success'
+            icon: 'success',
+            duration: 1500
           })
           
-          if (this.data.isEditMode) {
-            // 编辑模式：返回上一页
-            console.log('✅ 更新成功，返回上一页')
-            wx.navigateBack()
-          } else {
-            // 新建模式：跳转到记录详情页面
-            console.log('📋 新建记录返回数据:', res.data)
-            const newRecordId = res.data.id || res.data.record?.id
-            console.log('✅ 新建成功，记录ID:', newRecordId)
-            
-            if (newRecordId) {
-              setTimeout(() => {
-                wx.navigateTo({
-                  url: `/pages/record-detail/record-detail?id=${newRecordId}`,
-                  success: () => {
-                    console.log('✅ 成功跳转到记录详情页')
-                  },
-                  fail: (err) => {
-                    console.error('❌ 跳转失败，返回上一页:', err)
-                    wx.navigateBack()
-                  }
-                })
-              }, 1500)
-            } else {
-              console.warn('⚠️ 未获取到新记录ID，返回上一页')
-              wx.navigateBack()
-            }
-          }
+          // 保存成功后，跳转到过程记录列表页
+          console.log('✅ 保存成功，跳转到过程记录列表页')
+          
+          setTimeout(() => {
+            wx.switchTab({
+              url: '/pages/record/record',
+              success: () => {
+                console.log('✅ 成功跳转到过程记录列表页')
+              },
+              fail: (err) => {
+                console.error('❌ 跳转失败，返回上一页:', err)
+                wx.navigateBack()
+              }
+            })
+          }, 1500)
           
         } else {
           wx.showToast({

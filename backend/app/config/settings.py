@@ -68,7 +68,10 @@ class Settings(BaseSettings):
     TENCENT_ASR_REGION: str = "ap-shanghai"
     
     # 语音识别开发模式配置
-    ASR_DEV_MODE: bool = False
+    ASR_DEV_MODE: bool = True  # 本地开发默认开启
+    
+    # OCR识别开发模式配置
+    OCR_DEV_MODE: bool = False  # 改为False启用真实OCR
     
     # 腾讯云COS配置
     COS_BUCKET_NAME: str = ""

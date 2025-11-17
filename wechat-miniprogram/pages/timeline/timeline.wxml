@@ -82,6 +82,7 @@
         <view class="records-container">
           <view class="record-card {{record.record_type}} {{record.is_important ? 'important' : ''}} {{record.is_milestone ? 'milestone' : ''}} {{record.is_breakthrough ? 'breakthrough' : ''}}"
                 wx:for="{{item.records}}" 
+                wx:for-item="record"
                 wx:key="id"
                 bindtap="viewRecordDetail"
                 data-record="{{record}}">
@@ -89,11 +90,11 @@
             <!-- 记录头部 -->
             <view class="record-header">
               <view class="record-type-badge {{record.record_type}}">
-                <text class="type-icon">{{getTypeIcon(record.record_type)}}</text>
-                <text class="type-name">{{getTypeName(record.record_type)}}</text>
+                <text class="type-icon">{{record.typeIcon}}</text>
+                <text class="type-name">{{record.typeName}}</text>
               </view>
               <view class="record-time">
-                <text>{{formatTime(record.recorded_at)}}</text>
+                <text>{{record.formattedTime}}</text>
               </view>
             </view>
             
@@ -104,15 +105,11 @@
             
             <!-- 记录标签 -->
             <view class="record-tags" wx:if="{{record.tags && record.tags.length > 0}}">
-              <text class="tag" wx:for="{{record.tags}}" wx:key="*this">{{item}}</text>
+              <text class="tag" wx:for="{{record.tags}}" wx:for-item="tag" wx:key="*this">{{tag}}</text>
             </view>
             
             <!-- 记录状态 -->
-            <view class="record-status">
-              <view class="status-item" wx:if="{{record.sentiment}}">
-                <text class="status-icon {{record.sentiment}}">{{getSentimentIcon(record.sentiment)}}</text>
-                <text class="status-text">{{getSentimentText(record.sentiment)}}</text>
-              </view>
+            <view class="record-status" wx:if="{{record.energy_level || record.difficulty_level}}">
               <view class="status-item" wx:if="{{record.energy_level}}">
                 <text class="status-icon">⚡</text>
                 <text class="status-text">精力{{record.energy_level}}/10</text>

@@ -37,6 +37,7 @@ services:
       - WECHAT_APP_ID=${WECHAT_APP_ID}
       - WECHAT_APP_SECRET=${WECHAT_APP_SECRET}
       - ASR_DEV_MODE=${ASR_DEV_MODE:-false}
+      - OCR_DEV_MODE=${OCR_DEV_MODE:-false}
     ports:
       - "8000:8000"
     volumes:
@@ -80,7 +81,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./admin-frontend/nginx.lighthouse-http.conf:/etc/nginx/nginx.conf:ro
+      - ./admin-frontend/nginx.lighthouse.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/ssl:/etc/nginx/ssl:ro
       - ./uploads:/var/www/uploads
       - ./logs/nginx:/var/log/nginx

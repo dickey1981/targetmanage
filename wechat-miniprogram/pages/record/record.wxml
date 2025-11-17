@@ -74,24 +74,27 @@
       <view class="modal-body">
         <!-- 语音记录 -->
         <view wx:if="{{currentRecordType === 'voice'}}" class="voice-record">
-          <view class="voice-button-container">
-            <button 
-              class="voice-button {{isRecording ? 'recording' : ''}}"
-              bindtouchstart="startVoiceRecord"
-              bindtouchend="stopVoiceRecord"
-            >
-              <text class="voice-icon">🎤</text>
-              <view class="voice-text">
-                <text class="main-text">{{recordingText}}</text>
-                <text class="sub-text">{{voiceHint}}</text>
+          <view class="voice-container">
+            <view class="voice-circle-wrapper">
+              <view 
+                class="voice-circle {{isRecording ? 'recording' : ''}}"
+                bindtouchstart="startVoiceRecord"
+                bindtouchend="stopVoiceRecord"
+              >
+                <view class="microphone-icon">🎤</view>
               </view>
-              <!-- 录音指示器 -->
-              <view class="recording-indicator" wx:if="{{isRecording}}">
-                <view class="pulse-dot"></view>
-                <view class="pulse-dot"></view>
-                <view class="pulse-dot"></view>
+              <!-- 录音动画波纹 -->
+              <view class="wave-animation" wx:if="{{isRecording}}">
+                <view class="wave"></view>
+                <view class="wave"></view>
+                <view class="wave"></view>
               </view>
-            </button>
+            </view>
+            
+            <view class="voice-status">
+              <text class="status-text">{{recordingText}}</text>
+              <text class="hint-text">{{voiceHint}}</text>
+            </view>
           </view>
         </view>
 

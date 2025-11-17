@@ -373,6 +373,10 @@ Page({
       url: apiUrl,
       method: 'POST',
       data: requestData,
+      timeout: 30000,  // 30秒超时
+      header: {
+        'content-type': 'application/json'
+      },
       success: (res) => {
         console.log('登录响应:', res)
         console.log('响应数据:', res.data)
@@ -1035,12 +1039,155 @@ Page({
     wx.chooseImage({
       count: 1,
       sizeType: ['compressed'],
-      sourceType: ['camera'],
+      sourceType: ['camera', 'album'],  // 支持拍照和相册
       success: (res) => {
-        // TODO: 调用OCR API识别图片
-        wx.showToast({
+        const tempFilePath = res.tempFilePaths[0]
+        console.log('📷 选择图片成功:', tempFilePath)
+        
+        // 显示加载提示
+        wx.showLoading({
           title: '正在识别图片...',
+          mask: true
+        })
+        
+        // 上传图片并识别
+        this.uploadPhotoForRecognition(tempFilePath)
+      },
+      fail: (err) => {
+        console.error('📷 选择图片失败:', err)
+        wx.showToast({
+          title: '选择图片失败',
           icon: 'none'
+        })
+      }
+    })
+  },
+
+  // 上传图片进行识别（只识别，不创建记录）
+  uploadPhotoForRecognition(filePath) {
+    const apiUrl = `${app.globalData.baseUrl}/api/photo-records/recognize`
+    
+    console.log('📤 开始上传图片识别')
+    console.log('API URL:', apiUrl)
+    console.log('图片路径:', filePath)
+    
+    wx.uploadFile({
+      url: apiUrl,
+      filePath: filePath,
+      name: 'photo',
+      header: {
+        'Authorization': `Bearer ${wx.getStorageSync('token')}`
+      },
+      timeout: 30000,
+      success: (res) => {
+        console.log('📤 识别响应:', res)
+        
+        try {
+          const data = JSON.parse(res.data)
+          console.log('📤 解析后的数据:', data)
+          
+          if (data.success) {
+            wx.hideLoading()
+            
+            // 提取识别的文字
+            const recognizedText = data.data.text || ''
+            console.log('✅ 识别成功，文字内容:', recognizedText)
+            
+            // 显示识别结果确认弹窗
+            this.showPhotoRecognitionConfirm(recognizedText)
+            
+          } else {
+            wx.hideLoading()
+            const errorMsg = data.message || data.detail || '识别失败'
+            wx.showModal({
+              title: '识别失败',
+              content: errorMsg,
+              showCancel: false,
+              confirmText: '知道了'
+            })
+          }
+        } catch (e) {
+          console.error('📤 解析响应失败:', e)
+          wx.hideLoading()
+          wx.showToast({
+            title: '处理响应失败',
+            icon: 'none'
+          })
+        }
+      },
+      fail: (err) => {
+        console.error('📤 上传失败:', err)
+        wx.hideLoading()
+        wx.showToast({
+          title: '上传失败，请重试',
+          icon: 'none'
+        })
+      }
+    })
+  },
+
+  // 显示照片识别结果确认弹窗
+  showPhotoRecognitionConfirm(recognizedText) {
+    console.log('📸 显示识别结果确认弹窗')
+    console.log('识别内容:', recognizedText)
+    
+    wx.showModal({
+      title: '识别成功',
+      content: `识别内容：${recognizedText}`,
+      confirmText: '创建记录',
+      cancelText: '放弃',
+      success: (res) => {
+        if (res.confirm) {
+          // 用户点击"创建记录"，跳转到过程记录页面
+          console.log('✅ 用户选择创建记录')
+          this.navigateToProcessRecord(recognizedText)
+        } else {
+          // 用户点击"放弃"
+          console.log('❌ 用户放弃创建记录')
+          wx.showToast({
+            title: '已取消',
+            icon: 'none',
+            duration: 1500
+          })
+        }
+      }
+    })
+  },
+
+  // 跳转到过程记录页面（拍照记录）
+  navigateToProcessRecord(photoText) {
+    console.log('🚀 ========== 准备跳转到过程记录页面 ==========')
+    console.log('🚀 照片识别内容:', photoText)
+    
+    const encodedText = encodeURIComponent(photoText)
+    const targetUrl = `/pages/process-record/process-record?mode=create&photoText=${encodedText}`
+    
+    console.log('🚀 目标URL:', targetUrl)
+    console.log('🚀 URL长度:', targetUrl.length)
+    console.log('🚀 使用 reLaunch 强制重新加载页面')
+    
+    // 使用 reLaunch 替代 navigateTo，强制重新加载页面
+    wx.reLaunch({
+      url: targetUrl,
+      success: () => {
+        console.log('✅ wx.reLaunch 调用成功')
+      },
+      fail: (err) => {
+        console.error('❌ wx.reLaunch 调用失败:', err)
+        // 降级方案：使用 navigateTo
+        console.log('🔄 尝试降级使用 navigateTo')
+        wx.navigateTo({
+          url: targetUrl,
+          success: () => {
+            console.log('✅ navigateTo 成功')
+          },
+          fail: (err2) => {
+            console.error('❌ navigateTo 也失败:', err2)
+            wx.showToast({
+              title: '跳转失败',
+              icon: 'none'
+            })
+          }
         })
       }
     })

@@ -5,7 +5,7 @@ Page({
   data: {
     // 筛选器
     activeFilter: 'all',
-    timeRangeIndex: 0,
+    timeRangeIndex: 3,  // 默认选择"全部"
     timeRanges: [
       { name: '最近7天', days: 7 },
       { name: '最近30天', days: 30 },
@@ -84,36 +84,68 @@ Page({
     
     const { timeRanges, timeRangeIndex, activeFilter, page, goalId } = this.data
     const days = timeRanges[timeRangeIndex].days
+    const token = wx.getStorageSync('token') || app.globalData.token
+    
+    console.log('📊 加载时间线数据:', { days, activeFilter, goalId })
+    
+    // 构建请求参数，排除 null 值
+    const params = { days: days }
+    if (goalId) params.goal_id = goalId
+    if (activeFilter !== 'all') params.record_type = activeFilter
     
     wx.request({
       url: `${app.globalData.baseUrl}/api/process-records/timeline`,
       method: 'GET',
-      data: {
-        days: days,
-        goal_id: goalId,
-        record_type: activeFilter === 'all' ? null : activeFilter
+      header: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
       },
+      data: params,
       success: (res) => {
+        console.log('✅ 时间线数据响应:', res)
         if (res.statusCode === 200) {
           const newData = res.data || []
+          
+          // 处理数据，添加辅助方法
+          const processedData = newData.map(item => {
+            return {
+              ...item,
+              records: item.records.map(record => ({
+                ...record,
+                typeIcon: this.getTypeIcon(record.record_type),
+                typeName: this.getTypeName(record.record_type),
+                sentimentIcon: this.getSentimentIcon(record.sentiment),
+                sentimentText: this.getSentimentText(record.sentiment),
+                formattedTime: this.formatTime(record.recorded_at)
+              }))
+            }
+          })
           
           if (page === 1) {
             // 第一页，直接设置数据
             this.setData({
-              timelineData: newData,
+              timelineData: processedData,
               hasMore: newData.length >= this.data.pageSize
             })
           } else {
             // 后续页，追加数据
             this.setData({
-              timelineData: [...this.data.timelineData, ...newData],
+              timelineData: [...this.data.timelineData, ...processedData],
               hasMore: newData.length >= this.data.pageSize
             })
           }
+          
+          console.log('✅ 时间线数据加载成功:', processedData.length, '天')
+        } else {
+          console.error('❌ 时间线数据加载失败:', res)
+          wx.showToast({
+            title: res.data?.message || '加载失败',
+            icon: 'none'
+          })
         }
       },
       fail: (error) => {
-        console.error('加载时间线数据失败:', error)
+        console.error('❌ 加载时间线数据失败:', error)
         wx.showToast({
           title: '加载失败',
           icon: 'none'
@@ -123,6 +155,7 @@ Page({
         this.setData({
           loading: false
         })
+        wx.stopPullDownRefresh()
       }
     })
   },
@@ -131,23 +164,33 @@ Page({
   loadStats() {
     const { timeRanges, timeRangeIndex, goalId } = this.data
     const days = timeRanges[timeRangeIndex].days
+    const token = wx.getStorageSync('token') || app.globalData.token
+    
+    console.log('📈 加载统计数据:', { days, goalId })
+    
+    // 构建请求参数，排除 null 值
+    const params = { days: days }
+    if (goalId) params.goal_id = goalId
     
     wx.request({
       url: `${app.globalData.baseUrl}/api/process-records/stats`,
       method: 'GET',
-      data: {
-        days: days,
-        goal_id: goalId
+      header: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
       },
+      data: params,
       success: (res) => {
+        console.log('✅ 统计数据响应:', res)
         if (res.statusCode === 200) {
           this.setData({
             stats: res.data
           })
+          console.log('✅ 统计数据加载成功')
         }
       },
       fail: (error) => {
-        console.error('加载统计数据失败:', error)
+        console.error('❌ 加载统计数据失败:', error)
       }
     })
   },
@@ -165,14 +208,24 @@ Page({
   // 查看记录详情
   viewRecordDetail(e) {
     const record = e.currentTarget.dataset.record
-    console.log('查看记录详情:', record)
+    console.log('📝 查看记录详情:', record)
     
-    // 可以跳转到记录详情页面或显示详情弹窗
-    wx.showModal({
-      title: '记录详情',
-      content: record.content,
-      showCancel: false,
-      confirmText: '确定'
+    // 跳转到记录详情页面
+    wx.navigateTo({
+      url: `/pages/record-detail/record-detail?id=${record.id}`,
+      success: () => {
+        console.log('✅ 跳转到记录详情页成功')
+      },
+      fail: (err) => {
+        console.error('❌ 跳转失败:', err)
+        // 降级方案：显示简单弹窗
+        wx.showModal({
+          title: '记录详情',
+          content: record.content,
+          showCancel: false,
+          confirmText: '确定'
+        })
+      }
     })
   },
 

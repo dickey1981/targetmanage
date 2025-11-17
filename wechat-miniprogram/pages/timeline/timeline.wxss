@@ -26,12 +26,15 @@
   padding: 15rpx;
   border-radius: 20rpx;
   background-color: #f0f0f0;
+  color: #666;
   transition: all 0.3s ease;
 }
 
 .filter-tab.active {
-  background-color: #007aff;
+  background: linear-gradient(135deg, #00B4D8 0%, #0077B6 100%);
   color: white;
+  box-shadow: 0 2rpx 8rpx rgba(0, 180, 216, 0.3);
+  transform: scale(1.05);
 }
 
 .filter-tab text {
@@ -64,10 +67,12 @@
 }
 
 .stats-card {
-  background-color: white;
+  display: flex;
+  justify-content: space-around;
+  background: linear-gradient(135deg, #00B4D8 0%, #0077B6 100%);
   border-radius: 16rpx;
   padding: 30rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4rpx 12rpx rgba(0, 180, 216, 0.3);
 }
 
 .stat-item {
@@ -78,15 +83,15 @@
 }
 
 .stat-number {
-  font-size: 32rpx;
+  font-size: 36rpx;
   font-weight: bold;
-  color: #007aff;
+  color: white;
   margin-bottom: 8rpx;
 }
 
 .stat-label {
   font-size: 22rpx;
-  color: #666;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 /* 时间线 */
@@ -146,31 +151,81 @@
 
 /* 记录卡片 */
 .records-container {
-  margin-left: 20rpx;
+  position: relative;
+  padding-left: 40rpx;
+}
+
+/* 左侧时间轴线 */
+.records-container::before {
+  content: '';
+  position: absolute;
+  left: 15rpx;
+  top: 0;
+  bottom: 0;
+  width: 4rpx;
+  background: linear-gradient(to bottom, #00B4D8, #0077B6);
+  border-radius: 2rpx;
 }
 
 .record-card {
-  background-color: #f8f9fa;
+  position: relative;
+  background-color: white;
   border-radius: 12rpx;
   padding: 20rpx;
-  margin-bottom: 15rpx;
+  margin-bottom: 20rpx;
   border-left: 4rpx solid #e0e0e0;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
+}
+
+/* 时间轴节点 */
+.record-card::before {
+  content: '';
+  position: absolute;
+  left: -44rpx;
+  top: 20rpx;
+  width: 16rpx;
+  height: 16rpx;
+  background-color: #00B4D8;
+  border: 3rpx solid white;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2rpx #00B4D8;
+  z-index: 1;
+}
+
+.record-card:active {
+  transform: scale(0.98);
+  box-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.1);
 }
 
 .record-card.important {
   border-left-color: #ff9800;
-  background-color: #fff3e0;
+  background: linear-gradient(to right, #fff3e0 0%, white 10%);
+}
+
+.record-card.important::before {
+  background-color: #ff9800;
+  box-shadow: 0 0 0 2rpx #ff9800;
 }
 
 .record-card.milestone {
   border-left-color: #4caf50;
-  background-color: #e8f5e8;
+  background: linear-gradient(to right, #e8f5e8 0%, white 10%);
+}
+
+.record-card.milestone::before {
+  background-color: #4caf50;
+  box-shadow: 0 0 0 2rpx #4caf50;
 }
 
 .record-card.breakthrough {
   border-left-color: #9c27b0;
-  background-color: #f3e5f5;
+  background: linear-gradient(to right, #f3e5f5 0%, white 10%);
+}
+
+.record-card.breakthrough::before {
+  background-color: #9c27b0;
+  box-shadow: 0 0 0 2rpx #9c27b0;
 }
 
 .record-card.progress {

@@ -212,7 +212,7 @@ async def suggest_goal_for_content(
     """根据内容智能推荐最相关的目标"""
     try:
         from app.models.goal import Goal
-        from app.utils.voice_parser import voice_goal_parser
+        from app.services.goal_matcher import goal_matcher
         
         # 从请求中获取内容
         content = request.get('content', '')
@@ -236,62 +236,35 @@ async def suggest_goal_for_content(
                 "message": "没有可关联的目标"
             }
         
-        # 使用语音解析器分析内容，获取类别和关键词
-        parsed_content = voice_goal_parser.parse_voice_to_goal(content)
-        content_category = parsed_content.get('category', '')
-        content_title = parsed_content.get('title', '')
+        # 使用新的智能匹配服务
+        match_result = goal_matcher.match_goal(
+            content=content,
+            goals=goals,
+            user_id=current_user.id,
+            db=db
+        )
         
-        # 简单的目标匹配逻辑
-        best_match = None
-        best_score = 0
-        
-        for goal in goals:
-            score = 0
+        if match_result:
+            matched_goal = match_result['matched_goal']
             
-            # 类别匹配
-            if goal.category and content_category:
-                if goal.category == content_category:
-                    score += 0.5
+            # 转换置信度为数值
+            confidence_map = {'high': 0.9, 'medium': 0.7, 'low': 0.5}
+            confidence_value = confidence_map.get(
+                match_result['confidence'], 
+                match_result['score'] / 2
+            )
             
-            # 标题关键词匹配
-            if goal.title and content_title:
-                title_words = set(goal.title.lower().split())
-                content_words = set(content_title.lower().split())
-                common_words = title_words.intersection(content_words)
-                if common_words:
-                    score += len(common_words) * 0.2
-            
-            # 内容关键词匹配
-            content_lower = content.lower()
-            if '学习' in content_lower and '学习' in goal.title.lower():
-                score += 0.3
-            if 'python' in content_lower and 'python' in goal.title.lower():
-                score += 0.4
-            if '编程' in content_lower and '编程' in goal.title.lower():
-                score += 0.3
-            if '项目' in content_lower and '项目' in goal.title.lower():
-                score += 0.3
-            if '减肥' in content_lower and '减肥' in goal.title.lower():
-                score += 0.4
-            if '跑步' in content_lower and '跑步' in goal.title.lower():
-                score += 0.3
-            if '赚钱' in content_lower and '赚钱' in goal.title.lower():
-                score += 0.4
-            
-            if score > best_score:
-                best_score = score
-                best_match = goal
-        
-        if best_match and best_score > 0.3:
             return {
                 "success": True,
                 "suggested_goal": {
-                    "id": best_match.id,
-                    "title": best_match.title,
-                    "category": best_match.category
+                    "id": matched_goal.id,
+                    "title": matched_goal.title,
+                    "category": matched_goal.category
                 },
-                "confidence": min(best_score, 1.0),
-                "message": f"推荐关联目标: {best_match.title}"
+                "confidence": min(confidence_value, 1.0),
+                "score": match_result['score'],
+                "reason": match_result['reason'],
+                "message": f"推荐关联目标: {matched_goal.title}"
             }
         else:
             return {
@@ -352,6 +325,7 @@ async def get_process_records(
 async def get_process_records_timeline(
     goal_id: Optional[str] = Query(None, description="目标ID"),
     days: int = Query(30, ge=1, le=365, description="天数"),
+    record_type: Optional[str] = Query(None, description="记录类型"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -369,6 +343,9 @@ async def get_process_records_timeline(
         
         if goal_id:
             query = query.filter(ProcessRecord.goal_id == goal_id)
+        
+        if record_type:
+            query = query.filter(ProcessRecord.record_type == record_type)
         
         records = query.order_by(ProcessRecord.recorded_at.desc()).all()
         

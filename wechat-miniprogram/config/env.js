@@ -2,14 +2,14 @@
 // 环境配置文件
 
 const ENV = {
-  // 开发环境
+  // 开发环境（开发者工具中使用）
   development: {
-    baseUrl: 'http://localhost:8000',
+    baseUrl: 'http://localhost:8000',  // 本地开发环境
     apiVersion: 'v1',
     debug: true
   },
   
-  // 生产环境
+  // 生产环境（备案完成后使用HTTPS域名）
   production: {
     baseUrl: 'https://targetmanage.cn',
     apiVersion: 'v1',
