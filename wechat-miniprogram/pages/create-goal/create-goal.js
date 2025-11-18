@@ -630,6 +630,12 @@ Page({
     const voiceResult = this.data.voiceResult || '未识别到目标内容'
     const improvementSuggestions = this.convertToImprovementSuggestions(missingElements)
     
+    // 只有在有建议时才显示弹窗
+    if (improvementSuggestions.length === 0) {
+      console.log('✅ 目标解析完美，无需显示建议弹窗')
+      return
+    }
+    
     // 设置弹窗数据
     this.setData({
       showParsingModal: true,
