@@ -185,11 +185,21 @@ class GoalValidator:
         target_value = goal_data.get('targetValue')
         current_value = goal_data.get('currentValue', '0')
         unit = goal_data.get('unit')
+        title = goal_data.get('title', '')
+        
+        # 如果标题中已包含数字和单位信息，则不强制要求单独的量化字段
+        has_number_in_title = bool(re.search(r'\d+', title))
+        has_unit_in_title = any(unit_word in title for unit_word in ['公里', 'km', '斤', '本', '次', '天', '小时', '分钟', '页', '个', '元', '米'])
         
         if not target_value or not unit:
-            errors.append('目标必须设置具体的数值和单位')
-            suggestions.append('建议设置明确的数值，如"减重10斤"、"学习5本书"')
-            return {'errors': errors, 'warnings': warnings, 'suggestions': suggestions}
+            # 如果标题中已有数字和单位，只给警告，不阻止创建
+            if has_number_in_title and has_unit_in_title:
+                warnings.append('建议在量化指标中明确目标值和单位')
+                return {'errors': errors, 'warnings': warnings, 'suggestions': suggestions}
+            else:
+                errors.append('目标必须设置具体的数值和单位')
+                suggestions.append('建议设置明确的数值，如"减重10斤"、"学习5本书"')
+                return {'errors': errors, 'warnings': warnings, 'suggestions': suggestions}
         
         try:
             target = float(target_value)
