@@ -5,15 +5,7 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
-import { useUserStore } from '@/store/modules/user'
-
-const userStore = useUserStore()
-
-onMounted(() => {
-  // 检查登录状态
-  userStore.checkLogin()
-})
+// 简化版本，暂时不需要用户状态检查
 </script>
 
 <style lang="scss">
