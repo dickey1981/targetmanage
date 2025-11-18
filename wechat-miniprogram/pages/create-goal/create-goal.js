@@ -523,7 +523,7 @@ Page({
 
     // 调用后端API
     wx.request({
-      url: 'http://localhost:8000/api/goals/',
+      url: `${app.globalData.baseUrl}/api/goals/`,
       method: 'POST',
       header: {
         'Content-Type': 'application/json',
