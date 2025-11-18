@@ -224,21 +224,9 @@ class VoiceGoalParser:
             hints['suggestions'].append('请说出具体的数字和单位，如"减重10斤"、"学习5本书"')
             hints['improvement_tips'].append('示例：我要减重10斤、我要读5本书、我要跑100公里')
         
-        # 检查是否有明确的时间期限表达
-        time_deadline_expressions = [
-            '个月内', '周内', '天内', '半年内', '一年内', 
-            '下个月', '下周', '明天',
-            '日前', '前', '截止', '到', '为止',
-            '月前', '号前', '日之前', '月之前',
-            '春节前', '国庆前', '元旦前', '中秋前', '端午前',
-            '年底前', '年初前', '学期前', '假期前',
-            '季度', '这个季度', '下个季度', '季度内', '季度前',
-            '第一季度', '第二季度', '第三季度', '第四季度',
-            'Q1', 'Q2', 'Q3', 'Q4'
-        ]
-        has_time_deadline = any(expr in text for expr in time_deadline_expressions)
-        
-        if not has_time_deadline:
+        # 检查是否成功解析出时间范围
+        # 如果已经有 start_date 和 end_date，说明时间解析成功，不需要提示
+        if not start_date or not end_date:
             hints['missing_elements'].append('明确的时间期限')
             hints['suggestions'].append('请说出具体的时间范围，如"3个月内"、"半年内"')
             hints['improvement_tips'].append('示例：3个月内、半年内、下个月、这个季度')
@@ -265,7 +253,7 @@ class VoiceGoalParser:
         missing_count = len(hints['missing_elements'])
         if missing_count == 0:
             hints['parsing_quality'] = 'excellent'
-            hints['suggestions'].append('目标描述非常完整，可以直接创建！')
+            # 完美解析，不添加任何建议
         elif missing_count == 1:
             hints['parsing_quality'] = 'good'
             hints['suggestions'].append('目标描述基本完整，建议补充缺少的信息')
@@ -276,7 +264,7 @@ class VoiceGoalParser:
             hints['parsing_quality'] = 'poor'
             hints['suggestions'].append('目标描述过于简单，建议提供更详细的信息')
         
-        # 生成具体的改进建议
+        # 生成具体的改进建议（只在有缺失元素时）
         if hints['missing_elements']:
             hints['improvement_tips'].extend([
                 '💡 完整示例：我要在3个月内通过控制饮食和每天跑步30分钟减重10斤',
