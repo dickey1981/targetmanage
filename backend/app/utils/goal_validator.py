@@ -201,29 +201,8 @@ class GoalValidator:
                 suggestions.append('请设置一个正数的目标值')
                 return {'errors': errors, 'warnings': warnings, 'suggestions': suggestions}
             
-            # 根据类别检查数值范围
-            category = goal_data.get('category', '其他')
-            if category in self.value_rules:
-                category_rules = self.value_rules[category]
-                # 找到合适的规则类型（根据单位或其他特征）
-                applicable_rules = None
-                for rule_type, rules in category_rules.items():
-                    if 'min' in rules and 'max' in rules:
-                        applicable_rules = rules
-                        break
-                
-                if applicable_rules:
-                    if target < applicable_rules['min']:
-                        warnings.append(f'目标值较小，可能缺乏挑战性')
-                        suggestions.append(f'建议设置{applicable_rules["recommended"]}作为目标值')
-                    
-                    elif target > applicable_rules['max']:
-                        warnings.append(f'目标值较大，可能难以实现')
-                        suggestions.append(f'建议分解为多个阶段，每阶段{applicable_rules["recommended"]}')
-                    
-                    elif target > applicable_rules['recommended']:
-                        warnings.append(f'目标值较高，建议分阶段实现')
-                        suggestions.append(f'可以考虑先实现{applicable_rules["recommended"]}，再逐步提升')
+            # 移除过于严格的数值范围检查
+            # 只在极端情况下才给出建议
             
             # 检查目标值与当前值的差异
             if target <= current:
@@ -246,31 +225,22 @@ class GoalValidator:
         description = goal_data.get('description', '')
         full_text = f"{title} {description}"
         
-        # 检查标题长度
-        if not title or len(title.strip()) < 5:
+        # 检查标题长度 - 只在真正过短时才报错
+        if not title or len(title.strip()) < 3:
             errors.append('目标标题过短，请提供更详细的描述')
             suggestions.append('建议描述包含：做什么、怎么做、达到什么效果')
-        elif len(title) > 100:
+        elif len(title) > 150:  # 提高阈值，只在真正过长时才警告
             warnings.append('目标标题过长，建议简洁明了')
             suggestions.append('建议控制在50字以内，突出核心要点')
         
-        # 检查描述详细程度
-        if not description or len(description.strip()) < 10:
-            warnings.append('目标描述不够详细，可能影响执行效果')
-            suggestions.append('建议补充实现方法、关键步骤等信息')
-        
-        # 检查具体性关键词
+        # 检查具体性关键词 - 降低阈值，只在真正模糊时才警告
         specific_score = self._analyze_specificity(full_text)
-        if specific_score < 0.3:
+        if specific_score < 0.1:  # 从0.3降低到0.1
             warnings.append('目标描述较为模糊，建议更加具体明确')
             suggestions.append('建议使用具体数字、时间、地点等明确信息')
-        elif specific_score > 0.8:
-            suggestions.append('目标描述非常具体，这有助于执行和跟踪')
         
-        # 检查是否包含行动关键词
-        if not any(keyword in full_text for keyword in self.analysis_patterns['action_keywords']):
-            warnings.append('目标描述缺少明确的行动动词')
-            suggestions.append('建议使用"完成"、"实现"、"达到"等明确的行动词')
+        # 移除描述详细程度检查 - 不强制要求描述
+        # 移除行动关键词检查 - 不强制要求特定动词
         
         return {'errors': errors, 'warnings': warnings, 'suggestions': suggestions}
     
@@ -281,14 +251,12 @@ class GoalValidator:
         suggestions = []
         
         category = goal_data.get('category', '')
-        valid_categories = ['健康', '学习', '工作', '生活', '其他']
+        valid_categories = ['健康', '学习', '工作', '生活', '阅读', '旅行', '财务', '人际关系', '个人发展', '兴趣爱好', '其他']
         
         if not category:
             errors.append('必须选择目标类别')
             suggestions.append('请从预设类别中选择一个')
-        elif category not in valid_categories:
-            warnings.append(f'目标类别"{category}"不在预设范围内')
-            suggestions.append(f'建议选择：{", ".join(valid_categories)}')
+        # 移除类别不在预设范围的警告 - 接受任何类别
         
         return {'errors': errors, 'warnings': warnings, 'suggestions': suggestions}
     
@@ -298,47 +266,9 @@ class GoalValidator:
         warnings = []
         suggestions = []
         
-        target_value = goal_data.get('targetValue')
-        start_date = goal_data.get('startDate')
-        end_date = goal_data.get('endDate')
-        category = goal_data.get('category', '其他')
-        
-        if not target_value or not start_date or not end_date:
-            return {'errors': errors, 'warnings': warnings, 'suggestions': suggestions}
-        
-        try:
-            target = float(target_value)
-            start = datetime.fromisoformat(start_date)
-            end = datetime.fromisoformat(end_date)
-            duration_days = (end - start).days
-            
-            # 计算每日目标量
-            daily_target = target / duration_days if duration_days > 0 else 0
-            
-            # 根据类别和数值评估可实现性
-            achievability_score = self._assess_achievability(category, target, duration_days, daily_target)
-            
-            if achievability_score < 0.3:
-                errors.append('目标可能过于困难，建议降低难度或延长时间')
-                suggestions.append('建议分解为更小的阶段性目标，逐步实现')
-            elif achievability_score < 0.6:
-                warnings.append('目标具有一定挑战性，需要持续努力')
-                suggestions.append('建议制定详细的执行计划，定期检查进度')
-            elif achievability_score > 0.8:
-                warnings.append('目标可能过于简单，缺乏挑战性')
-                suggestions.append('建议适当提高目标难度，增加挑战性')
-            
-            # 检查每日目标量是否合理
-            if daily_target > 0:
-                if daily_target > 10:  # 每日目标过大
-                    warnings.append('每日目标量较大，可能难以坚持')
-                    suggestions.append('建议调整时间范围或降低总目标量')
-                elif daily_target < 0.1:  # 每日目标过小
-                    warnings.append('每日目标量较小，可能缺乏紧迫感')
-                    suggestions.append('建议适当提高目标量或缩短时间范围')
-            
-        except (ValueError, TypeError):
-            pass
+        # 移除可实现性的严格检查
+        # 用户自己最了解目标的可实现性，不需要系统过多干预
+        # 只保留基本的数据验证，不对目标难度进行评判
         
         return {'errors': errors, 'warnings': warnings, 'suggestions': suggestions}
     
