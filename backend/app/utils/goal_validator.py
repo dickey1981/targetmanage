@@ -192,9 +192,8 @@ class GoalValidator:
         has_unit_in_title = any(unit_word in title for unit_word in ['公里', 'km', '斤', '本', '次', '天', '小时', '分钟', '页', '个', '元', '米'])
         
         if not target_value or not unit:
-            # 如果标题中已有数字和单位，只给警告，不阻止创建
+            # 如果标题中已有数字和单位，完全跳过验证
             if has_number_in_title and has_unit_in_title:
-                warnings.append('建议在量化指标中明确目标值和单位')
                 return {'errors': errors, 'warnings': warnings, 'suggestions': suggestions}
             else:
                 errors.append('目标必须设置具体的数值和单位')
